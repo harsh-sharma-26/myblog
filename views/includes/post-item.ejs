@@ -8,5 +8,10 @@
     </form>
     <a href="/posts/<%= post.id %>/edit">Edit Post</a>
     <a class="btn" href="/posts/<%= post.id %>">View Post</a>
+    <div
+      class="like-widget"
+      data-post-id="<%= post.id %>"
+      data-likes="<%= post.likes || 0 %>"
+    ></div>
   </div>
 </article>

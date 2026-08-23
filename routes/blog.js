@@ -91,4 +91,27 @@ router.post("/posts/:id/delete", async (req, res) => {
   res.redirect("/posts");
 });
 
+router.post("/posts/:id/like", async (req, res) => {
+  await db.query("UPDATE posts SET likes = likes + 1 WHERE id = ?", [
+    req.params.id,
+  ]);
+  const [rows] = await db.query("SELECT likes FROM posts WHERE id = ?", [
+    req.params.id,
+  ]);
+  res.json({ likes: rows[0].likes });
+});
+
+router.post("/posts/:id/unlike", async (req, res) => {
+  // GREATEST(likes - 1, 0) ensures the count never goes below 0
+  // (e.g. agar koi race condition ho jaaye, negative likes na dikhein)
+  await db.query(
+    "UPDATE posts SET likes = GREATEST(likes - 1, 0) WHERE id = ?",
+    [req.params.id],
+  );
+  const [rows] = await db.query("SELECT likes FROM posts WHERE id = ?", [
+    req.params.id,
+  ]);
+  res.json({ likes: rows[0].likes });
+});
+
 module.exports = router;

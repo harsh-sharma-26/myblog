@@ -54,3 +54,100 @@
 #body {
   white-space: pre-wrap; /* This ensures that line breaks and whitespace are kept */
 }
+
+/* Like button (React component mounts here) */
+
+.like-widget {
+  display: flex;
+  justify-content: center;
+  margin: 0.75rem 0;
+}
+
+.like-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgb(89, 0, 255);
+  background-color: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  color: rgb(89, 0, 255);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.like-button:hover {
+  background-color: rgb(240, 230, 255);
+}
+
+.like-button:active {
+  transform: scale(0.96);
+}
+
+.like-button.liked {
+  border-color: rgb(232, 90, 245);
+  background-color: rgb(253, 235, 255);
+}
+
+.heart-icon {
+  display: inline-flex;
+  transition: transform 0.25s ease;
+}
+
+.heart-icon svg path {
+  fill: none;
+  stroke: rgb(89, 0, 255);
+  stroke-width: 1.5px;
+  transition:
+    fill 0.2s ease,
+    stroke 0.2s ease;
+}
+
+.like-button.liked .heart-icon svg path {
+  fill: rgb(232, 90, 245);
+  stroke: rgb(232, 90, 245);
+}
+
+/* Light "pop" bounce when clicked */
+.heart-icon.pop {
+  animation: heart-pop 0.4s ease;
+}
+
+@keyframes heart-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.35);
+  }
+  60% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Like count gently fades/slides in when it changes */
+.like-count {
+  font-weight: bold;
+  color: rgb(89, 0, 255);
+  min-width: 1ch;
+  animation: count-in 0.25s ease;
+}
+
+@keyframes count-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
