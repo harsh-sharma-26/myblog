@@ -151,3 +151,43 @@
     transform: translateY(0);
   }
 }
+
+/* Mobile styles */
+@media (max-width: 600px) {
+  #posts-list {
+    margin: 1.5rem auto;
+    max-width: 100%;
+  }
+
+  .post-item {
+    padding: 0.75rem;
+    margin: 0.75rem 0;
+  }
+
+  .post-item h2 {
+    font-size: 1.2rem;
+  }
+
+  .post-item p {
+    font-size: 0.9rem;
+  }
+
+  .post-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .like-button {
+    padding: 0.35rem 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .heart-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  #post-meta {
+    font-size: 0.9rem;
+  }
+}
