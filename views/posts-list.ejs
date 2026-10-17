@@ -8,23 +8,35 @@
   <body>
     <%- include('includes/header') %>
     <main id="all-posts">
-      <h1>All Posts</h1>
+      <%# [UI REDESIGN] Upar ka header section: heading + subtitle + New Post button %>
+      <div class="page-header">
+        <div>
+          <h1>All Posts</h1>
+          <p class="page-subtitle">Latest stories, ideas and thoughts from our authors.</p>
+        </div>
+        <a class="btn" href="/new-post">+ New Post</a>
+      </div>
       <% if (!posts || posts.length === 0) { %>
-      <p>No posts found, maybe try creating some! :)</p>
-      <a class="btn" href="/new-post">Create a new posts</a>
+      <%# [UI REDESIGN] Koi post na ho to ye "empty state" card dikhta hai %>
+      <div class="empty-state">
+        <p>No posts found, maybe try creating some! :)</p>
+        <a class="btn" href="/new-post">Create a new post</a>
+      </div>
       <% } else {%>
-      <ol>
+      <%# [UI REDESIGN] <ol> ab CSS grid hai (posts.css me .posts-grid). Pehle li me id="posts-list" tha jo har li me repeat hota tha (HTML me ek id sirf ek baar honi chahiye), isliye class kar diya %>
+      <ol class="posts-grid">
         <% for(const post of posts) {%>
-        <li id="posts-list">
+        <li class="posts-grid-item">
           <%- include("includes/post-item", { post: post }) %>
         </li>
         <% } %>
       </ol>
       <% } %>
     </main>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <%# [FIX #7] CDN scripts ka exact version pin kiya (react@18.3.1, babel@7.26.0). Pehle "react@18" aur bina version wala babel tha, jo kisi din update hoke app tod sakta tha. %>
+    <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.26.0/babel.min.js"></script>
     <script type="text/babel" src="/react/LikeButton.jsx"></script>
   </body>
 </html>

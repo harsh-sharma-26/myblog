@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include('includes/head', { title: 'Invalid input' }) %>
+</head>
+
+<body>
+  <%- include('includes/header') %>
+  <main class="status-page">
+    <%# [FIX #5] Ye naya page hai: server side validation fail hone pe yahi dikhta hai, message route se aata hai %>
+    <h1>Invalid input</h1>
+    <p><%= message %></p>
+    <a class="btn" href="javascript:history.back()">Go back</a>
+  </main>
+</body>
+
+</html>

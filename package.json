@@ -1,5 +1,5 @@
 {
-  "name": "web-development-complete-guide",
+  "name": "myblog",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -7,7 +7,7 @@
     "start": "nodemon app.js"
   },
   "keywords": [],
-  "author": "Maximilian Schwarzmüller (Academind GmbH)",
+  "author": "",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^17.4.2",

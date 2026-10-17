@@ -1,11 +1,16 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<%# [UI REDESIGN] theme-color: phone browser ki address bar ka color site ke purple se match karta hai %>
+<meta name="theme-color" content="#6a3df0">
 <title>
   <%= title %>
 </title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Slab:wght@400;700&display=swap"
+<%# [UI REDESIGN] Inter = body text ka modern font, Roboto Slab = headings ka font %>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;700&display=swap"
   rel="stylesheet">
 <link rel="stylesheet" href="/styles/base.css">
+<%# [UI REDESIGN] theme.js jaanboojh ke bina defer ke hai: saved dark/light theme page dikhne se PEHLE lag jaye, white flash na aaye %>
+<script src="/scripts/theme.js"></script>

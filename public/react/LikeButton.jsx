@@ -49,14 +49,14 @@ function LikeButton({ postId, initialLikes }) {
     const nextLiked = !isCurrentlyLiked;
     const endpoint = nextLiked ? "like" : "unlike";
 
-    // 1. Optimistic UI update — flip immediately, don't wait for the server.
+    // Optimistic UI update — flip immediately, don't wait for the server.
     //    This is what makes Instagram/Twitter likes feel instant.
     setLiked(nextLiked);
     setLikes((current) => (nextLiked ? current + 1 : current - 1));
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
 
-    // 2. Tell the real Express/MySQL backend which action happened, in the background
+    // Tell the real Express/MySQL backend which action happened, in the background
     try {
       const response = await fetch(`/posts/${postId}/${endpoint}`, {
         method: "POST",
@@ -67,10 +67,10 @@ function LikeButton({ postId, initialLikes }) {
       }
 
       const data = await response.json();
-      // 3. Sync with the real count from the database (in case of any drift)
+      // Sync with the real count from the database (in case of any drift)
       setLikes(data.likes);
 
-      // 4. Keep localStorage in sync with the new state, so a page refresh
+      // Keep localStorage in sync with the new state, so a page refresh
       //    remembers whether this browser liked the post or not.
       if (nextLiked) {
         markPostAsLiked(postId);
@@ -78,7 +78,7 @@ function LikeButton({ postId, initialLikes }) {
         unmarkPostAsLiked(postId);
       }
     } catch (error) {
-      // 5. If the request failed, undo the optimistic update so the UI stays honest
+      // If the request failed, undo the optimistic update so the UI stays honest
       console.error("Could not update like:", error);
       setLiked(isCurrentlyLiked);
       setLikes((current) => (nextLiked ? current - 1 : current + 1));
@@ -108,9 +108,9 @@ function LikeButton({ postId, initialLikes }) {
 // with the post's id and current like count stored as data-attributes — React reads
 // those and takes over from there.
 document.querySelectorAll(".like-widget").forEach((el) => {
-  const postId = el.dataset.postId;
-  const initialLikes = parseInt(el.dataset.likes, 10) || 0;
+  const postId = el.dataset.postId; // "7" (string)
+  const initialLikes = parseInt(el.dataset.likes, 10) || 0; // 12 (number)
 
-  const root = ReactDOM.createRoot(el);
+  const root = ReactDOM.createRoot(el); // every like-widget div is a root for a React component tree, every like-widget has its own react tree.
   root.render(<LikeButton postId={postId} initialLikes={initialLikes} />);
 });

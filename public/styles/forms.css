@@ -1,34 +1,80 @@
-form {
-  max-width: 25rem;
-  margin: 2rem auto;
-}
+/* =====================================================================
+   FORMS (Create Post / Update Post pages)
+   Colors base.css ke variables se aate hain, isliye dark mode me bhi sahi dikhte hain.
+   ===================================================================== */
 
 h1 {
   text-align: center;
 }
 
+/* Poora form ek card jaisa dikhta hai */
+form {
+  max-width: 36rem;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
 label {
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 0.9rem;
   display: block;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.4rem;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   font: inherit;
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid rgb(204, 204, 204);
+  color: var(--text);
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: var(--bg);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
+input,
+textarea,
+select {
+  width: 100%; /* sab fields ek barabar chaude (pehle select chhota tha) */
+}
+
+textarea {
+  resize: vertical; /* sirf upar-neeche resize, layout nahi tootega */
+  min-height: 9rem;
+}
+
+/* Field pe click karte hi purple ring dikhti hai */
 input:focus,
-textarea:focus {
-  background-color: rgb(237, 228, 255);
-}
-
-input, textarea {
-  width: 100%;
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 .form-control {
-  margin: 0.5rem 0;
+  margin: 1.1rem 0;
+}
+
+/* Submit button poori width le (mobile pe tap karna aasan) */
+form .btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.85rem 1.4rem;
+  font-size: 1rem;
+}
+
+@media (max-width: 600px) {
+  form {
+    padding: 1.25rem;
+    margin: 1rem auto;
+  }
 }

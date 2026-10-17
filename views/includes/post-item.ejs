@@ -1,17 +1,25 @@
 <article class="post-item">
+  <%# [UI REDESIGN] Author ke naam ka pehla akshar gol avatar me dikhta hai. (post.author_name || "?") ka matlab: naam na ho to "?" dikhao, crash na ho %>
+  <p class="post-item-author">
+    <span class="author-avatar" aria-hidden="true"><%= (post.author_name || "?").charAt(0).toUpperCase() %></span>
+    <%= post.author_name %>
+  </p>
   <h2><%= post.title %></h2>
-  <p class="post-item-author">By <%= post.author_name %></p>
-  <p><%= post.summary %></p>
+  <p class="post-item-summary"><%= post.summary %></p>
   <div class="post-actions">
-    <form action="/posts/<%= post.id %>/delete " method="POST">
-      <button class="btn btn-alt">Delete Post</button>
-    </form>
-    <a href="/posts/<%= post.id %>/edit">Edit Post</a>
-    <a class="btn" href="/posts/<%= post.id %>">View Post</a>
+    <a class="btn" href="/posts/<%= post.id %>">Read Post</a>
     <div
       class="like-widget"
       data-post-id="<%= post.id %>"
       data-likes="<%= post.likes || 0 %>"
     ></div>
+    <%# [UI REDESIGN] Edit + Delete ko ek group me daala, jo CSS se right side me jata hai %>
+    <div class="post-actions-secondary">
+      <a class="post-edit-link" href="/posts/<%= post.id %>/edit">Edit</a>
+      <%# [FIX #2] action ke end ka extra space hata diya. [FIX #6] onsubmit me confirm() lagaya: "OK" dabane pe hi delete hoga, "Cancel" pe form submit nahi hoga %>
+      <form action="/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('Kya aap sach me ye post delete karna chahte ho?');">
+        <button class="btn btn-danger">Delete</button>
+      </form>
+    </div>
   </div>
 </article>

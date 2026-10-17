@@ -1,4 +1,4 @@
-require("dotenv").config(); // Load environment variables from .env file
+require("dotenv").config(); // Load environment variables from .env file, It looks a little unusual cause it is not assigned to a variable, but it is correct. We are immediately invoking the function returned by require("dotenv").config() to load the environment variables into process.env.
 const path = require("path");
 
 const express = require("express");

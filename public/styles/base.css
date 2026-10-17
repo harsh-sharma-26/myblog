@@ -1,27 +1,175 @@
-/* Base styles & resets */
+/* =====================================================================
+   BASE STYLES  (poori site pe lagne wali styling yahan hai)
+   ---------------------------------------------------------------------
+   Is file me:
+   1. Colors / spacing ke "variables" (light + dark theme)
+   2. Reset + basic typography
+   3. Buttons
+   4. Header / navbar + theme toggle button
+   5. Error pages (400/404/500) ka look
+   6. Mobile (responsive) styles
+
+   TIP: Rang badalne hon to sirf section 1 ke variables badlo,
+   baaki poori site apne aap badal jayegi.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. THEME VARIABLES
+   `--naam: value;` ek variable hota hai, jise baad me `var(--naam)` se use karte hain.
+   Light mode ke colors `:root` me hain (default).
+   --------------------------------------------------------------------- */
+:root {
+  color-scheme: light; /* browser ke apne controls (scrollbar, select) bhi light dikhein */
+
+  --bg: #f5f4ff; /* page ka background */
+  --bg-glow: rgba(124, 77, 255, 0.14); /* upar ka halka purple chamak */
+  --surface: #ffffff; /* cards / forms ka background */
+  --text: #1d1a2f; /* main text */
+  --muted: #6a6784; /* halka text (author, hints) */
+  --border: #e5e2f6; /* lines aur borders */
+
+  --accent: #6a3df0; /* main brand color (purple) */
+  --accent-2: #e04ff0; /* gradient ka doosra color (pink) */
+  --accent-soft: #eee9ff; /* accent ka bahut halka shade (hover/badge) */
+  --on-accent: #ffffff; /* accent ke upar likha text */
+
+  --danger: #d92d3a; /* delete jaisi cheezon ke liye red */
+  --danger-soft: #ffe9eb;
+
+  --header-bg: rgba(255, 255, 255, 0.78); /* navbar (thoda transparent, blur ke saath) */
+  --shadow: 0 1px 2px rgba(29, 26, 47, 0.06), 0 8px 24px rgba(60, 40, 140, 0.08);
+  --shadow-hover: 0 2px 4px rgba(29, 26, 47, 0.08), 0 16px 40px rgba(60, 40, 140, 0.18);
+
+  --radius: 16px; /* cards ke gol kone */
+  --radius-sm: 10px; /* inputs / buttons ke gol kone */
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: "Roboto Slab", Georgia, serif;
+}
+
+/* Dark mode, case A: user ne khud toggle button se dark chuna (theme.js `data-theme="dark"` lagata hai) */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0e0c1a;
+  --bg-glow: rgba(124, 77, 255, 0.22);
+  --surface: #181529;
+  --text: #ecebf7;
+  --muted: #a29fbd;
+  --border: #2b2744;
+
+  --accent: #9a7bff;
+  --accent-2: #f07cf5;
+  --accent-soft: #2a2250;
+  --on-accent: #12091f;
+
+  --danger: #ff7b86;
+  --danger-soft: #3a1b24;
+
+  --header-bg: rgba(14, 12, 26, 0.78);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* Dark mode, case B: user ne kuch choose nahi kiya, to phone/computer ki apni setting follow karo.
+   `:not([data-theme="light"])` ka matlab: agar user ne manually light chuna hai to ye rule mat lagao.
+   (Variables yahan dobara likhne padte hain, CSS me ek hi block do conditions ke liye share nahi hota.) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg: #0e0c1a;
+    --bg-glow: rgba(124, 77, 255, 0.22);
+    --surface: #181529;
+    --text: #ecebf7;
+    --muted: #a29fbd;
+    --border: #2b2744;
+
+    --accent: #9a7bff;
+    --accent-2: #f07cf5;
+    --accent-soft: #2a2250;
+    --on-accent: #12091f;
+
+    --danger: #ff7b86;
+    --danger-soft: #3a1b24;
+
+    --header-bg: rgba(14, 12, 26, 0.78);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   2. RESET + TYPOGRAPHY
+   --------------------------------------------------------------------- */
+* {
+  box-sizing: border-box; /* padding/border width ke andar hi count hoga, layout predictable rehta hai */
+}
 
 html {
-  font-family: "Roboto Slab", serif;
-  color: rgb(46, 45, 48);
+  font-family: var(--font-body);
+  color: var(--text);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%; /* phone me font apne aap bada na ho */
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  line-height: 1.6;
+  background-color: var(--bg);
+  /* Page ke upar beech me halka purple glow, taaki background flat na lage */
+  background-image: radial-gradient(
+    ellipse 70% 40% at 50% -5%,
+    var(--bg-glow),
+    transparent 70%
+  );
+  background-repeat: no-repeat;
+  /* Theme badalte waqt colors smoothly change hon */
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
+/* Page kholte hi content halka sa neeche se upar aata hai */
 main {
-  width: 80%;
-  margin: 3rem auto;
+  width: min(100% - 2rem, 70rem); /* 2rem = dono side 1rem gap; max width 70rem */
+  margin: 2.5rem auto 4rem;
+  animation: fade-up 0.5s ease both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: clamp(1.9rem, 4vw, 2.7rem); /* screen ke hisaab se size: min, ideal, max */
+  margin: 0 0 1rem;
 }
 
 a {
   text-decoration: none;
-  color: rgb(89, 0, 255);
+  color: var(--accent);
+  transition: color 0.2s ease;
 }
 
 a:hover,
 a:active {
-  color: rgb(232, 90, 245);
+  color: var(--accent-2);
 }
 
 ul,
@@ -31,104 +179,266 @@ ol {
   padding: 0;
 }
 
-/* Global components */
+/* Keyboard se navigate karne wale users ko focus ring dikhe (accessibility) */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
 
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* ---------------------------------------------------------------------
+   3. BUTTONS
+   --------------------------------------------------------------------- */
 .btn {
+  display: inline-block;
   cursor: pointer;
   font: inherit;
-  background-color: rgb(89, 0, 255);
-  border: 1px solid rgb(89, 0, 255);
-  color: white;
-  padding: 0.5rem 1.5rem;
-  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  padding: 0.65rem 1.4rem;
+  border: 0;
+  border-radius: 999px; /* poora gol (pill) shape */
+  color: var(--on-accent);
+  /* Purple se pink gradient */
+  background-image: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 4px 14px rgba(106, 61, 240, 0.35);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
 }
 
 .btn:hover,
 .btn:active {
-  background-color: rgb(71, 4, 196);
-  border-color: rgb(71, 4, 196);
-  color: white;
+  color: var(--on-accent);
+  transform: translateY(-2px); /* hover pe halka upar uthta hai */
+  box-shadow: 0 8px 22px rgba(106, 61, 240, 0.45);
+  filter: brightness(1.05);
 }
 
+/* Halka "ghost" button: sirf border, background nahi */
 .btn.btn-alt {
+  background-image: none;
   background-color: transparent;
-  border-color: transparent;
-  color: rgb(89, 0, 255);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: none;
 }
 
 .btn.btn-alt:hover,
 .btn.btn-alt:active {
-  color: rgb(232, 90, 245);
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: none;
 }
 
-/* Site-wide content / elements */
+/* Delete jaise khatarnak action ke liye red button */
+.btn.btn-danger {
+  background-image: none;
+  background-color: transparent;
+  border: 1px solid transparent;
+  color: var(--danger);
+  box-shadow: none;
+  padding-left: 0.9rem;
+  padding-right: 0.9rem;
+}
 
+.btn.btn-danger:hover,
+.btn.btn-danger:active {
+  background-color: var(--danger-soft);
+  color: var(--danger);
+  box-shadow: none;
+}
+
+/* ---------------------------------------------------------------------
+   4. HEADER / NAVBAR
+   --------------------------------------------------------------------- */
 #main-header {
-  padding: 2rem 10%;
-  background-color: rgb(89, 0, 255);
+  position: sticky; /* scroll karne pe bhi upar chipka rehta hai */
+  top: 0;
+  z-index: 50; /* baaki content ke upar dikhe */
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
+  padding: 0.9rem max(1rem, 6%);
+  background-color: var(--header-bg);
+  /* "Frosted glass" effect: peeche ka content halka blur hoke dikhta hai */
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid var(--border);
 }
 
+/* Logo: text ke andar gradient color */
 #logo a {
-  font-size: 2rem;
-  font-weight: bold;
-  color: white;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background-image: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent; /* text ka apna color hata do taaki gradient dikhe */
+  color: transparent;
 }
 
 #main-header ul {
   display: flex;
-}
-
-#main-header li {
-  margin-left: 2rem;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 #main-header nav a {
-  color: white;
-  font-size: 1.25rem;
+  position: relative;
+  display: inline-block;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--muted);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 #main-header nav a:hover,
 #main-header nav a:active {
-  color: rgb(255, 217, 0);
+  color: var(--accent);
+  background-color: var(--accent-soft);
 }
 
-/* Mobile styles */
+/* Jo page abhi khula hai uska link highlight (theme.js `.active` class lagata hai) */
+#main-header nav a.active {
+  color: var(--accent);
+  background-color: var(--accent-soft);
+}
+
+/* Light/Dark toggle button (gol button, andar sun/moon icon) */
+#theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-left: 0.25rem;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+#theme-toggle:hover {
+  background-color: var(--accent-soft);
+  border-color: var(--accent);
+  transform: rotate(15deg);
+}
+
+#theme-toggle svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Dono icons header.ejs me hain; CSS decide karti hai kaun sa dikhe.
+   Light mode me "moon" dikhta hai (click karo to dark ho), dark mode me "sun". */
+#theme-toggle .icon-sun {
+  display: none;
+}
+
+:root[data-theme="dark"] #theme-toggle .icon-sun {
+  display: block;
+}
+:root[data-theme="dark"] #theme-toggle .icon-moon {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) #theme-toggle .icon-sun {
+    display: block;
+  }
+  :root:not([data-theme="light"]) #theme-toggle .icon-moon {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   5. ERROR PAGES (400 / 404 / 500) - beech me card jaisa look
+   --------------------------------------------------------------------- */
+.status-page {
+  max-width: 34rem;
+  margin: 4rem auto;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.status-page p {
+  color: var(--muted);
+  margin: 0 0 1.5rem;
+}
+
+/* ---------------------------------------------------------------------
+   6. MOBILE STYLES (screen 600px se chhoti ho to)
+   --------------------------------------------------------------------- */
 @media (max-width: 600px) {
   #main-header {
-    padding: 1rem 5%;
-    flex-direction: column;
-    gap: 0.75rem;
-    text-align: center;
+    padding: 0.7rem 1rem;
+    gap: 0.5rem;
   }
 
   #logo a {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
   }
 
   #main-header ul {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  #main-header li {
-    margin: 0 0.75rem;
+    gap: 0.1rem;
   }
 
   #main-header nav a {
-    font-size: 1rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  #theme-toggle {
+    width: 2.1rem;
+    height: 2.1rem;
   }
 
   main {
-    width: 92%;
-    margin: 1.5rem auto;
+    margin: 1.5rem auto 3rem;
   }
 
-  .btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.95rem;
+  .status-page {
+    margin: 2rem auto;
+    padding: 1.75rem 1.25rem;
+  }
+}
+
+/* Jin users ne phone/computer me "animations kam karo" on kiya hai, unke liye animation band */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+  html {
+    scroll-behavior: auto;
   }
 }

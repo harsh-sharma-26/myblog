@@ -9,7 +9,8 @@
     <%- include('includes/header') %>
     <main>
       <h1>Update post</h1>
-      <form action="/posts/<%= post.id %>/edit " method="POST">
+      <%# [FIX #2] action ke end me jo extra space tha wo hata diya %>
+      <form action="/posts/<%= post.id %>/edit" method="POST">
         <div class="form-control">
           <label for="title">Title</label>
           <input
@@ -22,10 +23,11 @@
         </div>
         <div class="form-control">
           <label for="summary">Summary</label>
+          <%# [FIX #2] value ke end ka extra space hata diya, warna har edit pe space save hota tha %>
           <input
             type="text"
             id="summary"
-            value="<%= post.summary %> "
+            value="<%= post.summary %>"
             name="summary"
             required
             maxlength="255"
@@ -33,9 +35,17 @@
         </div>
         <div class="form-control">
           <label for="content">Post Content</label>
-          <textarea id="content" name="content" required rows="5">
-<%= post.body %> </textarea
-          >
+          <%# [FIX #2] textarea ke andar bhi extra space/newline nahi hona chahiye, isliye sab ek line me hai %>
+          <textarea id="content" name="content" required rows="5"><%= post.body %></textarea>
+        </div>
+        <%# [FIX #4] Naya: ab edit karte waqt author bhi badal sakte ho. Current author pehle se selected dikhta hai %>
+        <div class="form-control">
+          <label for="author">Select Author</label>
+          <select id="author" name="author">
+            <% for (const author of authors) { %>
+            <option value="<%= author.id %>" <%= author.id === post.author_id ? 'selected' : '' %>><%= author.Name %></option>
+            <% } %>
+          </select>
         </div>
         <button class="btn">Update Post</button>
       </form>
