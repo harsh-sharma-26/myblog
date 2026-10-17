@@ -27,9 +27,8 @@ html.is-loading {
   overflow: hidden;
 }
 
-html.is-loading body > *:not(#page-loader) {
-  visibility: hidden;
-}
+/* [PERF] Pehle yahan visibility:hidden se site chhupayi jati thi, jisse LCP loader ke time tak ruk jata tha.
+   Ab loader (opaque, z-index 9999) khud upar se dhak leta hai, content peeche render hota rehta hai. */
 
 /* ---------------------------------------------------------------------
    Loader ka full-screen card

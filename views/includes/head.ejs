@@ -9,8 +9,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <%# [UI REDESIGN] Inter = body text ka modern font, Roboto Slab = headings ka font %>
+<%# [PERF] Font CSS render-blocking tha. media="print" + onload trick se ab page ko block nahi karta (noscript = JS band ho tab fallback) %>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;700&display=swap"
-  rel="stylesheet">
+  rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="/styles/base.css">
 <%# [LOADER] loader ki styling. head me hai taaki pehle paint se pehle ready ho %>
 <link rel="stylesheet" href="/styles/loader.css">

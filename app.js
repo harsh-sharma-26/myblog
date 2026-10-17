@@ -2,6 +2,7 @@ require("dotenv").config(); // Load environment variables from .env file, It loo
 const path = require("path");
 
 const express = require("express");
+const compression = require("compression");
 
 const blogRoutes = require("./routes/blog");
 
@@ -13,6 +14,7 @@ app.set("views", path.join(__dirname, "views"));
 
 //middlewares:
 app.use(express.urlencoded({ extended: true })); // Parse incoming request bodies
+app.use(compression()); // [PERF] gzip HTML/CSS/JS responses
 app.use(express.static("public")); // Serve static files (e.g. CSS files)
 
 app.use(blogRoutes);
