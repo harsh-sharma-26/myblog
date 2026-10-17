@@ -59,8 +59,18 @@
     transform 0.25s ease,
     box-shadow 0.25s ease,
     border-color 0.25s ease;
-  animation: fade-up 0.5s ease both;
 }
+
+/* Loader ke baad cards ek ke baad ek (stagger) neeche se slide hoke aate hain.
+   nth-child se har card ko thoda zyada delay milta hai. `slide-up` keyframes base.css me hain. */
+.is-ready .post-item {
+  animation: slide-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.6s;
+}
+.is-ready .posts-grid-item:nth-child(2) .post-item { animation-delay: 0.72s; }
+.is-ready .posts-grid-item:nth-child(3) .post-item { animation-delay: 0.84s; }
+.is-ready .posts-grid-item:nth-child(4) .post-item { animation-delay: 0.96s; }
+.is-ready .posts-grid-item:nth-child(n + 5) .post-item { animation-delay: 1.08s; }
 
 /* Card ke upar patli gradient line */
 .post-item::before {

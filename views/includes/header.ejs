@@ -1,3 +1,12 @@
+<%# [LOADER] Full-screen loader. Header har page me sabse pehle include hota hai, isliye loader har page ke body me sabse upar aata hai.
+    Ye normally hidden rehta hai; loader.js "is-loading" class lagati hai tab dikhta hai, aur site khulne pe hata deti hai. Styling: public/styles/loader.css %>
+<div id="page-loader" aria-hidden="true">
+  <span class="loader-blob loader-blob-1"></span>
+  <span class="loader-blob loader-blob-2"></span>
+  <div class="loader-ring"><span class="loader-logo">M</span></div>
+  <p class="loader-text">MyBlog</p>
+  <div class="loader-bar"><span class="loader-bar-fill"></span></div>
+</div>
 <header id="main-header">
   <div id="logo">
     <a href="/">MyBlog</a>

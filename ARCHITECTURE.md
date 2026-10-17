@@ -48,8 +48,9 @@ myBlog/
 │       ├── header.ejs      ← top navbar
 │       └── post-item.ejs   ← list me ek post ka card
 └── public/                 ← browser ko seedha serve hota hai (static)
-    ├── styles/             ← base.css (theme variables + header + buttons), forms.css, posts.css
+    ├── styles/             ← base.css (theme variables + header + buttons), forms.css, posts.css, loader.css
     ├── scripts/theme.js    ← light/dark toggle + navbar active link
+    ├── scripts/loader.js   ← page loader ka logic (setTimeout)
     └── react/LikeButton.jsx← React like-button component
 ```
 
@@ -122,6 +123,20 @@ Dhyan rahe: "liked" status sirf **us browser** ka hai (localStorage). Server pe 
 3. Agar user ne kabhi choose nahi kiya, to CSS khud phone/computer ki setting (`prefers-color-scheme`) follow karti hai. Isiliye dark variables **do jagah** likhe hain (data-theme wala aur media query wala), ek block dono ke liye share nahi ho sakta.
 4. `theme.js` `<head>` me bina `defer` ke load hoti hai, taaki page dikhne se pehle theme lag jaye aur white flash na aaye.
 5. Naya color/element banao to hamesha `var(--...)` use karo, hardcoded color nahi, warna wo dark mode me galat dikhega.
+
+### Page loader (site khulne se pehle) — `loader.css` + `loader.js`
+Flow:
+1. `views/includes/header.ejs` me sabse upar `<div id="page-loader">` hai (header har page me pehle include hota hai, isliye loader har page pe aata hai). Ye default me **hidden** rehta hai.
+2. `head.ejs` me `loader.js` bina `defer` ke load hoti hai. Ye turant `<html>` pe class **`is-loading`** lagati hai: loader dikhta hai, baaki site `visibility: hidden` ho jati hai, scroll band.
+3. `setTimeout` se loader kam se kam **1.4 sec** (`MIN_LOADER_TIME`) rukta hai, aur page ke poore load hone ka bhi intezar karta hai.
+4. Phir `is-loading` hat ke **`is-ready`** lagti hai: loader upar slide hoke nikalta hai (`.hide`), header upar se neeche slide hota hai, content neeche se upar, aur post cards ek ke baad ek (stagger) aate hain. Ye animations `.is-ready` selectors se chalti hain (`base.css`, `posts.css`).
+
+Safety (site kabhi atakegi nahi):
+- JS band ho to `is-loading` class lagti hi nahi, to loader hidden rehta hai aur site normal dikhti hai.
+- `MAX_LOADER_TIME` (4 sec) ke baad site zabardasti khul jati hai, chahe CDN slow ho.
+- Jin users ne "reduce motion" on kiya hai unke liye loader skip hota hai.
+
+Time badalna ho to `public/scripts/loader.js` ke upar `MIN_LOADER_TIME` / `MAX_LOADER_TIME` badlo. Loader ka rang/shape `loader.css` me hai.
 
 ### Responsive design
 - Cards ka grid `repeat(auto-fill, minmax(min(100%, 20rem), 1fr))` hai: desktop pe 2-3 columns, phone pe apne aap 1 column. Iske liye media query nahi chahiye.

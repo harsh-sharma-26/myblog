@@ -1,0 +1,191 @@
+/* =====================================================================
+   PAGE LOADER (site khulne se pehle dikhne wala full-screen loader)
+   ---------------------------------------------------------------------
+   Poora flow (JS public/scripts/loader.js me hai):
+   1. Page khulte hi JS <html> pe class "is-loading" lagata hai
+      -> loader dikhta hai, baaki poori site chhupi rehti hai.
+   2. Thodi der (setTimeout) baad JS "is-loading" hata ke "is-ready" lagata hai
+      -> loader upar slide hoke gayab, aur site slide-in animation ke saath aati hai.
+   3. Agar JS band hai to dono classes nahi lagti, loader hidden rehta hai
+      aur site normal dikhti hai (loader kabhi site ko block nahi karega).
+   Colors base.css ke variables se aate hain, isliye dark mode me bhi sahi dikhta hai.
+   ===================================================================== */
+
+/* Default me loader dikhta hi nahi. Sirf tab dikhta hai jab JS ne class lagayi ho */
+#page-loader {
+  display: none;
+}
+
+html.is-loading #page-loader,
+html.is-ready #page-loader {
+  /* is-ready me bhi display rakhna zaruri hai, taaki neeche wali "slide up" exit animation chal sake */
+  display: flex;
+}
+
+/* Loader chal raha hai: site ka baaki content chhupa do aur scroll band */
+html.is-loading {
+  overflow: hidden;
+}
+
+html.is-loading body > *:not(#page-loader) {
+  visibility: hidden;
+}
+
+/* ---------------------------------------------------------------------
+   Loader ka full-screen card
+   --------------------------------------------------------------------- */
+#page-loader {
+  position: fixed;
+  inset: 0; /* poori screen: top/right/bottom/left = 0 */
+  z-index: 9999; /* sabse upar, navbar ke bhi upar */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  overflow: hidden;
+  background-color: var(--bg);
+  /* Exit animation: loader upar ki taraf slide hoke nikalta hai */
+  transition: transform 0.8s cubic-bezier(0.77, 0, 0.18, 1);
+}
+
+/* JS ye class tab lagata hai jab site dikhani ho: loader upar slide ho jata hai */
+#page-loader.hide {
+  transform: translateY(-100%);
+}
+
+/* Peeche ke 2 blur wale rangeen gole, jo halke halke tairte hain (sirf sajawat) */
+.loader-blob {
+  position: absolute;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.35;
+  animation: loader-float 6s ease-in-out infinite alternate;
+}
+
+.loader-blob-1 {
+  top: -6rem;
+  left: -6rem;
+  background-color: var(--accent);
+}
+
+.loader-blob-2 {
+  right: -6rem;
+  bottom: -6rem;
+  background-color: var(--accent-2);
+  animation-delay: -3s; /* doosra gola ulte time pe chalta hai */
+}
+
+@keyframes loader-float {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(3rem, 2rem) scale(1.15);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Ghoomti hui gradient ring + beech me "M" logo
+   --------------------------------------------------------------------- */
+.loader-ring {
+  position: relative;
+  z-index: 1; /* blobs ke upar */
+  display: grid;
+  place-items: center;
+  width: 6.5rem;
+  height: 6.5rem;
+}
+
+/* Ring: conic-gradient (ghoomta rang) ko mask se patli ring me kaat diya hai */
+.loader-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-image: conic-gradient(
+    from 0deg,
+    transparent 0 15%,
+    var(--accent) 55%,
+    var(--accent-2) 100%
+  );
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 6px),
+    #000 calc(100% - 5px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 6px),
+    #000 calc(100% - 5px)
+  );
+  animation: loader-spin 1.1s linear infinite;
+}
+
+@keyframes loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loader-logo {
+  font-family: var(--font-heading);
+  font-size: 2.6rem;
+  font-weight: 700;
+  background-image: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: loader-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes loader-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+/* "MyBlog" text + neeche progress bar */
+.loader-text {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text);
+}
+
+.loader-bar {
+  position: relative;
+  z-index: 1;
+  width: min(12rem, 60vw);
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background-color: var(--border);
+}
+
+/* Bar ke andar ka rang bharta hai. Kitni der me poora bharega ye --loader-time se aata hai
+   (JS wahi time set karta hai jitni der loader dikhna hai, to bar aur loader saath khatam hote hain) */
+.loader-bar-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background-image: linear-gradient(90deg, var(--accent), var(--accent-2));
+  animation: loader-fill var(--loader-time, 1.4s) ease-in-out forwards;
+}
+
+@keyframes loader-fill {
+  to {
+    width: 100%;
+  }
+}

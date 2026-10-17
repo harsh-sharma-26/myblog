@@ -130,22 +130,47 @@ body {
     color 0.3s ease;
 }
 
-/* Page kholte hi content halka sa neeche se upar aata hai */
-main {
-  width: min(100% - 2rem, 70rem); /* 2rem = dono side 1rem gap; max width 70rem */
-  margin: 2.5rem auto 4rem;
-  animation: fade-up 0.5s ease both;
+/* ---- SLIDE-IN ANIMATIONS (loader ke baad site aise andar aati hai) ----
+   Ye animations tab chalti hain jab loader.js <html> pe "is-ready" class lagata hai
+   (yaani loader khatam ho gaya). Isliye selectors `.is-ready` se shuru hote hain.
+   Agar loader chala hi nahi (JS band / reduced-motion), to ye class nahi lagti
+   aur site bina animation ke seedha dikhti hai. */
+
+/* Header upar se neeche slide hota hai */
+.is-ready #main-header {
+  animation: slide-down 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
 }
 
-@keyframes fade-up {
+/* Main content neeche se upar slide hota hai (halka delay taaki loader pehle nikle) */
+.is-ready main {
+  animation: slide-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+
+@keyframes slide-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(40px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+main {
+  width: min(100% - 2rem, 70rem); /* 2rem = dono side 1rem gap; max width 70rem */
+  margin: 2.5rem auto 4rem;
 }
 
 h1,
