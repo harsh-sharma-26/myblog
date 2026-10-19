@@ -343,6 +343,69 @@ ol {
   background-color: var(--accent-soft);
 }
 
+/* ---- [AUTH] Navbar me login ki halat: naam, Admin badge, Logout ---- */
+#main-header .nav-user {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+#main-header .nav-user-name {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis; /* lamba naam ... se kat jata hai, navbar nahi tootta */
+  white-space: nowrap;
+}
+
+/* "Admin" chhota gola tag */
+.role-badge {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background-color: var(--accent-soft);
+}
+
+/* Logout ek POST <form> hai (GET link nahi). forms.css ka `form { card }` style header me nahi lagna chahiye,
+   isliye id (#main-header) ke saath likha hai taaki wo style yahan har haal me haar jaye. */
+#main-header .logout-form {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#main-header .logout-button {
+  cursor: pointer;
+  font: inherit;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.45rem 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  color: var(--muted);
+  background: transparent;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+#main-header .logout-button:hover,
+#main-header .logout-button:active {
+  color: var(--danger);
+  background-color: var(--danger-soft);
+}
+
 /* Light/Dark toggle button (gol button, andar sun/moon icon) */
 #theme-toggle {
   display: inline-flex;
@@ -433,8 +496,26 @@ ol {
     font-size: 1.35rem;
   }
 
+  #main-header {
+    flex-wrap: wrap; /* [AUTH] items zyada ho gaye (naam + logout), tang screen pe agli line me chale jayein */
+  }
+
   #main-header ul {
     gap: 0.1rem;
+    flex-wrap: wrap;
+  }
+
+  #main-header .nav-user {
+    font-size: 0.8rem;
+  }
+
+  #main-header .nav-user-name {
+    max-width: 5.5rem;
+  }
+
+  #main-header .logout-button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
   }
 
   #main-header nav a {

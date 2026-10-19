@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('includes/head', { title: 'Sign up' }) %>
+    <link rel="stylesheet" href="/styles/forms.css" />
+  </head>
+
+  <body>
+    <%- include('includes/header') %>
+    <main>
+      <h1>Create account</h1>
+      <form action="/signup" method="POST">
+        <%- include('includes/csrf-field') %>
+        <%- include('includes/form-error') %>
+        <div class="form-control">
+          <label for="displayName">Name</label>
+          <input type="text" id="displayName" name="displayName" value="<%= values.displayName %>" required minlength="2" maxlength="100" autocomplete="name" />
+        </div>
+        <div class="form-control">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" value="<%= values.email %>" required maxlength="255" autocomplete="email" />
+        </div>
+        <div class="form-control">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password" />
+          <p class="form-hint">Kam se kam 8 characters.</p>
+        </div>
+        <div class="form-control">
+          <label for="confirmPassword">Confirm password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8" autocomplete="new-password" />
+        </div>
+        <button class="btn">Sign up</button>
+        <p class="form-alt">Pehle se account hai? <a href="/login">Login karo</a></p>
+      </form>
+    </main>
+  </body>
+</html>

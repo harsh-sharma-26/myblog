@@ -78,3 +78,47 @@ form .btn {
     margin: 1rem auto;
   }
 }
+
+/* ---------------------------------------------------------------------
+   [AUTH] Login / Signup / Admin login pages ke extra elements
+   --------------------------------------------------------------------- */
+
+/* Validation / galat password ka laal box */
+.form-error {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--danger);
+  background-color: var(--danger-soft);
+  color: var(--danger);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Input ke neeche chhoti hint (jaise "Kam se kam 8 characters") */
+.form-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Form ke neeche "Account nahi hai? Signup" jaise links */
+.form-alt {
+  margin: 1rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.form-alt a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Create post page par "Posting as <naam>" line */
+.posting-as {
+  text-align: center;
+  margin: -0.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}

@@ -386,3 +386,19 @@
     line-height: 1.75;
   }
 }
+
+/* ---------------------------------------------------------------------
+   [AUTH] Admin ke liye like button disabled (sirf count dikhta hai), aur detail page ke Edit/Delete
+   --------------------------------------------------------------------- */
+.like-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.like-button:disabled:hover {
+  transform: none;
+}
+
+#post-detail .detail-actions {
+  margin-top: 1.5rem;
+}

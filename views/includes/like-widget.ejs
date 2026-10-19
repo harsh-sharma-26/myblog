@@ -1,0 +1,14 @@
+<%# [AUTH] Like button ka khali container. React (public/react/LikeButton.jsx) isi div ko dhundh ke andar button mount karta hai.
+    data-mode batata hai ki button ko kaise behave karna hai:
+      "user"  -> normal user: like/unlike chalega
+      "guest" -> login nahi: click par login page par bhejega
+      "admin" -> admin: sirf count dikhega, button disabled (admin like nahi karta, post_likes sirf users ke liye hai)
+    data-liked: kya is user ne ye post pehle like kiya hai (server ke post_likes table se, routes/blog.js ka liked_by_me).
+    Pehle ye browser ke localStorage me yaad rehta tha, ab server pe hai, to kisi bhi device/browser me sahi dikhta hai. %>
+<div
+  class="like-widget"
+  data-post-id="<%= post.id %>"
+  data-likes="<%= post.likes || 0 %>"
+  data-liked="<%= post.liked_by_me ? 'true' : 'false' %>"
+  data-mode="<%= !locals.currentUser ? 'guest' : currentUser.type %>"
+></div>

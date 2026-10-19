@@ -1,0 +1,2 @@
+<%# [AUTH - CSRF] Har POST form ke andar ye include karna zaruri hai. Ye ek chhupa hua input banata hai jisme session ka secret token hota hai. Server (middleware/csrf.js) isse match karta hai; token na ho ya galat ho to request 403 se reject hoti hai. `locals.csrfToken` isliye (seedha csrfToken nahi) ki error page jaisi jagah jahan token set nahi hota wahan EJS crash na kare. %>
+<input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">

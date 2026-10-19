@@ -1,0 +1,4 @@
+<%# [AUTH] Form ke upar laal error box. Sirf tab dikhta hai jab route ne `error` message bheja ho (validation fail / galat password). role="alert" se screen reader turant padh deta hai. %>
+<% if (locals.error) { %>
+<p class="form-error" role="alert"><%= error %></p>
+<% } %>

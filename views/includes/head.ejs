@@ -13,6 +13,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;700&display=swap"
   rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<%# [AUTH - CSRF] Like button jaise fetch() requests form nahi bhejte, to unhe token header me dena padta hai. LikeButton.jsx isi meta tag se token padhta hai. %>
+<% if (locals.csrfToken) { %><meta name="csrf-token" content="<%= csrfToken %>"><% } %>
 <link rel="stylesheet" href="/styles/base.css">
 <%# [LOADER] loader ki styling. head me hai taaki pehle paint se pehle ready ho %>
 <link rel="stylesheet" href="/styles/loader.css">

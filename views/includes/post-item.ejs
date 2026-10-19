@@ -8,18 +8,18 @@
   <p class="post-item-summary"><%= post.summary %></p>
   <div class="post-actions">
     <a class="btn" href="/posts/<%= post.id %>">Read Post</a>
-    <div
-      class="like-widget"
-      data-post-id="<%= post.id %>"
-      data-likes="<%= post.likes || 0 %>"
-    ></div>
+    <%- include('like-widget', { post: post }) %>
+    <%# [AUTH] Edit/Delete sirf unhe dikhte hain jinhe permission hai (admin: sab posts, user: sirf apni). Ye sirf UI hai, asli check server pe hota hai (routes/blog.js), URL seedha kholne par bhi 403 milega. %>
+    <% if (locals.canModify && canModify(post)) { %>
     <%# [UI REDESIGN] Edit + Delete ko ek group me daala, jo CSS se right side me jata hai %>
     <div class="post-actions-secondary">
       <a class="post-edit-link" href="/posts/<%= post.id %>/edit">Edit</a>
       <%# [FIX #2] action ke end ka extra space hata diya. [FIX #6] onsubmit me confirm() lagaya: "OK" dabane pe hi delete hoga, "Cancel" pe form submit nahi hoga %>
       <form action="/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('Kya aap sach me ye post delete karna chahte ho?');">
+        <%- include('csrf-field') %>
         <button class="btn btn-danger">Delete</button>
       </form>
     </div>
+    <% } %>
   </div>
 </article>

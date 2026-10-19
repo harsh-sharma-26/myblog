@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include('includes/head', { title: 'Not allowed' }) %>
+</head>
+
+<body>
+  <%- include('includes/header') %>
+  <main class="status-page">
+    <%# [AUTH] 403 = "tum yahan ho par tumhe ye karne ki ijazat nahi". (401/login-redirect = "tum kaun ho pata nahi".) Default message permission wala hai; CSRF fail hone par route apna alag `message` bhejta hai. %>
+    <h1>Not allowed</h1>
+    <p><%= locals.message || "Aapko ye action karne ki permission nahi hai." %></p>
+    <a class="btn" href="/posts">Back To Posts</a>
+  </main>
+</body>
+
+</html>

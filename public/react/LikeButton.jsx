@@ -7,43 +7,34 @@
 
 const { useState } = React;
 
-// Helper functions to read/write the list of post ids this browser has
-// already liked. We store a simple array of ids under one key, e.g.
-// localStorage item "likedPosts" = ["3", "7", "12"]
-function getLikedPostIds() {
-  try {
-    const raw = localStorage.getItem("likedPosts");
-    return raw ? JSON.parse(raw) : [];
-  } catch (error) {
-    // If localStorage is unavailable or the saved data is corrupted,
-    // fail safely by pretending nothing has been liked yet.
-    return [];
-  }
+// [AUTH] Pehle "kaunse posts is browser ne like kiye" localStorage me save hota tha. Wo sirf usi browser me
+// yaad rehta tha aur koi bhi localStorage badal ke jitni baar chahe like kar sakta tha.
+// Ab ye sach DB (post_likes table) me hai. Server har widget ke div me `data-liked` bhejta hai,
+// to kisi bhi browser / device me login karo, heart sahi dikhta hai. localStorage ka koi kaam nahi bacha.
+
+// Server CSRF token <meta name="csrf-token"> me deta hai (views/includes/head.ejs).
+// fetch() form nahi hai, isliye token hum header me khud bhejte hain (middleware/csrf.js check karta hai).
+function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  return meta ? meta.getAttribute("content") : "";
 }
 
-function markPostAsLiked(postId) {
-  const likedIds = getLikedPostIds();
-  if (!likedIds.includes(postId)) {
-    likedIds.push(postId);
-    localStorage.setItem("likedPosts", JSON.stringify(likedIds));
-  }
-}
-
-function unmarkPostAsLiked(postId) {
-  const likedIds = getLikedPostIds();
-  const updated = likedIds.filter((id) => id !== postId);
-  localStorage.setItem("likedPosts", JSON.stringify(updated));
-}
-
-function LikeButton({ postId, initialLikes }) {
-  // Instead of always starting as false, check localStorage FIRST.
-  // useState(() => ...) runs this function only once, when the component
-  // first mounts — this is called "lazy initial state" in React.
-  const [liked, setLiked] = useState(() => getLikedPostIds().includes(postId));
+// mode (server decide karta hai, views/includes/like-widget.ejs):
+//   "user"  -> normal user, like/unlike chalega
+//   "guest" -> login nahi, click par login page par bhejte hain (login ke baad wapas isi page par aayega)
+//   "admin" -> admin like nahi karta (post_likes sirf users ke liye hai), button disabled, sirf count dikhta hai
+function LikeButton({ postId, initialLikes, initialLiked, mode }) {
+  const [liked, setLiked] = useState(initialLiked);
   const [likes, setLikes] = useState(initialLikes);
   const [isAnimating, setIsAnimating] = useState(false);
 
   async function handleToggleLike() {
+    if (mode === "guest") {
+      const next = encodeURIComponent(window.location.pathname);
+      window.location.href = `/login?next=${next}`;
+      return;
+    }
+
     // Decide upfront what we're doing, since "liked" is about to flip
     const isCurrentlyLiked = liked;
     const nextLiked = !isCurrentlyLiked;
@@ -52,7 +43,7 @@ function LikeButton({ postId, initialLikes }) {
     // Optimistic UI update — flip immediately, don't wait for the server.
     //    This is what makes Instagram/Twitter likes feel instant.
     setLiked(nextLiked);
-    setLikes((current) => (nextLiked ? current + 1 : current - 1));
+    setLikes((current) => (nextLiked ? current + 1 : Math.max(current - 1, 0)));
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 300);
 
@@ -60,38 +51,47 @@ function LikeButton({ postId, initialLikes }) {
     try {
       const response = await fetch(`/posts/${postId}/${endpoint}`, {
         method: "POST",
+        headers: {
+          // "json" maangne se server login/permission fail par redirect HTML ki jagah JSON error deta hai
+          Accept: "application/json",
+          "x-csrf-token": getCsrfToken(),
+        },
       });
 
+      if (response.status === 401) {
+        // Session expire ho gaya (ya doosre tab me logout hua): login par bhej do
+        window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+        return;
+      }
       if (!response.ok) {
         throw new Error("Server rejected the request");
       }
 
       const data = await response.json();
-      // Sync with the real count from the database (in case of any drift)
+      // Sync with the real count + real liked state from the database (in case of any drift)
       setLikes(data.likes);
-
-      // Keep localStorage in sync with the new state, so a page refresh
-      //    remembers whether this browser liked the post or not.
-      if (nextLiked) {
-        markPostAsLiked(postId);
-      } else {
-        unmarkPostAsLiked(postId);
-      }
+      setLiked(data.liked);
     } catch (error) {
       // If the request failed, undo the optimistic update so the UI stays honest
       console.error("Could not update like:", error);
       setLiked(isCurrentlyLiked);
-      setLikes((current) => (nextLiked ? current - 1 : current + 1));
+      setLikes((current) => (nextLiked ? Math.max(current - 1, 0) : current + 1));
     }
   }
+
+  const isAdmin = mode === "admin";
 
   return (
     <button
       type="button"
       className={"like-button" + (liked ? " liked" : "")}
       onClick={handleToggleLike}
+      disabled={isAdmin}
       aria-pressed={liked}
-      aria-label={liked ? "Unlike this post" : "Like this post"}
+      aria-label={
+        isAdmin ? "Admins cannot like posts" : liked ? "Unlike this post" : "Like this post"
+      }
+      title={isAdmin ? "Admins cannot like posts" : mode === "guest" ? "Login to like" : undefined}
     >
       <span className={"heart-icon" + (isAnimating ? " pop" : "")}>
         <svg viewBox="0 0 24 24" width="22" height="22">
@@ -104,13 +104,17 @@ function LikeButton({ postId, initialLikes }) {
 }
 
 // Mount a <LikeButton /> into every element with class "like-widget" found on the page.
-// Each post-item.ejs / post-detail.ejs simply renders an empty <div class="like-widget">
-// with the post's id and current like count stored as data-attributes — React reads
+// Each post-item.ejs / post-detail.ejs renders (via includes/like-widget.ejs) an empty <div class="like-widget">
+// with the post's id, like count, liked state and mode stored as data-attributes — React reads
 // those and takes over from there.
 document.querySelectorAll(".like-widget").forEach((el) => {
   const postId = el.dataset.postId; // "7" (string)
   const initialLikes = parseInt(el.dataset.likes, 10) || 0; // 12 (number)
+  const initialLiked = el.dataset.liked === "true"; // dataset values hamesha string hoti hain, isliye boolean me badla
+  const mode = el.dataset.mode; // "user" | "guest" | "admin"
 
   const root = ReactDOM.createRoot(el); // every like-widget div is a root for a React component tree, every like-widget has its own react tree.
-  root.render(<LikeButton postId={postId} initialLikes={initialLikes} />);
+  root.render(
+    <LikeButton postId={postId} initialLikes={initialLikes} initialLiked={initialLiked} mode={mode} />,
+  );
 });

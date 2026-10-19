@@ -11,14 +11,29 @@
       <h1><%=post.title%></h1>
       <section id="post-meta">
         <address>
+          <%# [AUTH] Admin (author) ki post me email ka mailto link pehle jaisa. Normal user ki post me author_email NULL hota hai (user ki email public nahi dikhate), to sirf naam dikhta hai %>
+          <% if (post.author_email) { %>
           <a href="mailto:<%= post.author_email %>"> <%= post.author_name %></a>
+          <% } else { %>
+          <%= post.author_name %>
+          <% } %>
         </address>
       </section>
       <hr />
       <section>
         <p id="body"><%= post.body %></p>
       </section>
-      <div class="like-widget" data-post-id="<%= post.id %>" data-likes="<%= post.likes || 0 %>"></div>
+      <%- include('includes/like-widget', { post: post }) %>
+      <%# [AUTH] Detail page par bhi Edit/Delete, sirf permission walon ko %>
+      <% if (locals.canModify && canModify(post)) { %>
+      <div class="post-actions-secondary detail-actions">
+        <a class="post-edit-link" href="/posts/<%= post.id %>/edit">Edit</a>
+        <form action="/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('Kya aap sach me ye post delete karna chahte ho?');">
+          <%- include('includes/csrf-field') %>
+          <button class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+      <% } %>
     </main>
     <%# [FIX #7] CDN scripts ka exact version pin kiya (react@18.3.1, babel@7.26.0). Pehle "react@18" aur bina version wala babel tha, jo kisi din update hoke app tod sakta tha. %>
     <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>

@@ -11,6 +11,7 @@
       <h1>Update post</h1>
       <%# [FIX #2] action ke end me jo extra space tha wo hata diya %>
       <form action="/posts/<%= post.id %>/edit" method="POST">
+        <%- include('includes/csrf-field') %>
         <div class="form-control">
           <label for="title">Title</label>
           <input
@@ -19,6 +20,7 @@
             value="<%= post.title %>"
             name="title"
             required
+            maxlength="255"
           />
         </div>
         <div class="form-control">
@@ -38,15 +40,7 @@
           <%# [FIX #2] textarea ke andar bhi extra space/newline nahi hona chahiye, isliye sab ek line me hai %>
           <textarea id="content" name="content" required rows="5"><%= post.body %></textarea>
         </div>
-        <%# [FIX #4] Naya: ab edit karte waqt author bhi badal sakte ho. Current author pehle se selected dikhta hai %>
-        <div class="form-control">
-          <label for="author">Select Author</label>
-          <select id="author" name="author">
-            <% for (const author of authors) { %>
-            <option value="<%= author.id %>" <%= author.id === post.author_id ? 'selected' : '' %>><%= author.Name %></option>
-            <% } %>
-          </select>
-        </div>
+        <%# [AUTH] Edit me author dropdown nahi hai: post ka owner kabhi nahi badalta (admin kisi ki post edit kare tab bhi) %>
         <button class="btn">Update Post</button>
       </form>
     </main>

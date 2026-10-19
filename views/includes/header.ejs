@@ -16,9 +16,31 @@
       <li>
         <a href="/posts">All Posts</a>
       </li>
+      <%# [AUTH] Navbar login ki halat ke hisaab se badalta hai. `locals.currentUser` (seedha currentUser nahi) isliye ki
+          kabhi error page aise mauke pe render ho jab user load hi nahi hua tha, tab bhi EJS crash na kare. %>
+      <% if (locals.currentUser) { %>
       <li>
         <a href="/new-post">Create Post</a>
       </li>
+      <li class="nav-user">
+        <span class="nav-user-name"><%= currentUser.name %></span>
+        <% if (currentUser.type === 'admin') { %><span class="role-badge">Admin</span><% } %>
+      </li>
+      <li>
+        <%# Logout GET link nahi, POST form hai (CSRF token ke saath), warna koi bhi image tag se user ko logout karwa deta %>
+        <form class="logout-form" action="/logout" method="POST">
+          <%- include('csrf-field') %>
+          <button type="submit" class="logout-button">Logout</button>
+        </form>
+      </li>
+      <% } else { %>
+      <li>
+        <a href="/login">Login</a>
+      </li>
+      <li>
+        <a href="/signup">Sign up</a>
+      </li>
+      <% } %>
       <li>
         <%# [UI REDESIGN] Light/Dark toggle button. Dono icons yahan hain, base.css decide karti hai kaun sa dikhe. Click ka logic public/scripts/theme.js me hai %>
         <button id="theme-toggle" type="button" aria-label="Switch theme">
