@@ -9,12 +9,25 @@ const blogRoutes = require("./routes/blog");
 const authRoutes = require("./routes/auth");
 const { loadCurrentUser } = require("./middleware/auth");
 const { csrfProtection } = require("./middleware/csrf");
+const { requestLogger } = require("./middleware/request-logger");
+const logger = require("./utils/logger");
+const db = require("./data/database");
+
+// [LOGGING] Last-resort handlers: log crashes that happen outside any request before the process dies,
+// so the cause shows up in the logs instead of the server just silently restarting.
+process.on("unhandledRejection", (reason) => {
+  logger.error("Unhandled promise rejection", { error: reason instanceof Error ? reason : new Error(String(reason)) });
+});
+process.on("uncaughtException", (error) => {
+  logger.error("Uncaught exception, shutting down", { error });
+  process.exit(1);
+});
 
 // [AUTH] Session cookie ko sign karne ke liye secret zaruri hai. Bina secret ke koi bhi nakli cookie bana ke
 // kisi ka bhi account ban sakta tha, isliye secret na ho to server start hi nahi hone dete (chupchap insecure chalne se behtar).
 // .env me SESSION_SECRET=<lamba random string> daalo. Bana ne ka tarika: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) {
-  console.error("SESSION_SECRET .env me set nahi hai (ya 32 characters se chhota hai). Server start nahi ho sakta.");
+  logger.error("SESSION_SECRET is missing or shorter than 32 characters. Server cannot start.");
   process.exit(1);
 }
 
@@ -39,6 +52,21 @@ app.use(express.urlencoded({ extended: true })); // Parse incoming request bodie
 app.use(compression()); // [PERF] gzip HTML/CSS/JS responses
 app.use(express.static("public")); // Serve static files (e.g. CSS files)
 // Static files ke BAAD isliye: CSS/JS/image ki request pe session aur DB lookup ki zaroorat nahi, wo upar hi khatam ho jati hain.
+
+// [LOGGING] One log line per page / API request (static files above are skipped on purpose)
+app.use(requestLogger);
+
+// [LOGGING] Health check: tells you (or Render's health check) whether the server AND the database are up.
+// Placed before sessions / CSRF because it needs neither.
+app.get("/health", async function (req, res) {
+  try {
+    await db.query("SELECT 1");
+    res.json({ status: "ok", database: "ok", uptimeSeconds: Math.round(process.uptime()) });
+  } catch (error) {
+    logger.error("Health check failed: database unreachable", { error });
+    res.status(503).json({ status: "error", database: "unreachable" });
+  }
+});
 
 // [AUTH] 1) Session: login ki yaad browser ki cookie me rehti hai (server pe alag session table nahi).
 // Cookie signed hai (keys se), isliye user usme type/id badal nahi sakta; badlega to signature galat hoke cookie reject ho jayegi.
@@ -69,8 +97,19 @@ app.use(function (req, res) {
 app.use(function (error, req, res, next) {
   // Default error handling function
   // Will become active whenever any route / middleware crashes
-  console.log(error);
+  // [LOGGING] Full stack trace + which request caused it, so you can find what broke
+  logger.error("Request failed", { method: req.method, url: req.originalUrl, error });
   res.status(500).render("500");
 });
 
-app.listen(process.env.PORT || 3000);
+const port = process.env.PORT || 3000;
+app.listen(port, async function () {
+  logger.info("Server started", { port: Number(port), env: process.env.NODE_ENV || "development" });
+  // [LOGGING] Check the database once at startup, so a wrong DB password / host shows up immediately
+  try {
+    await db.query("SELECT 1");
+    logger.info("Database connection OK");
+  } catch (error) {
+    logger.error("Database connection FAILED at startup", { error });
+  }
+});
