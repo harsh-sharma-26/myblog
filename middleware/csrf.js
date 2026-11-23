@@ -48,10 +48,10 @@ function csrfProtection(req, res, next) {
   if (tokensMatch(req.session.csrfToken, received)) return next();
 
   if (req.accepts(["html", "json"]) === "json") {
-    return res.status(403).json({ error: "Invalid ya expired security token. Page refresh karke dobara try karo." });
+    return res.status(403).json({ error: "Invalid or expired security token. Please refresh the page and try again." });
   }
   res.status(403).render("403", {
-    message: "Security token invalid ya expire ho gaya. Page refresh karke dobara try karo.",
+    message: "Your security token is invalid or has expired. Please refresh the page and try again.",
   });
 }
 

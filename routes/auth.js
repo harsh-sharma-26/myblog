@@ -58,7 +58,7 @@ router.post(
     const rateKey = `signup|${req.ip}`;
     if (signupAttempts.isBlocked(rateKey)) {
       return res.status(429).render("signup", {
-        error: "Bahut zyada signup koshishein hui hain. Thodi der baad try karo.",
+        error: "Too many signup attempts. Please try again later.",
         values: { displayName: "", email: "" },
       });
     }
@@ -82,7 +82,7 @@ router.post(
       // isliye seedha insert karke DB ke duplicate error ko pakadte hain. Ye hamesha sahi tarike se kaam karta hai.
       if (dbError.code === "ER_DUP_ENTRY") {
         return res.status(409).render("signup", {
-          error: "Is email se account pehle se bana hua hai. Login karo.",
+          error: "An account with this email already exists. Please log in.",
           values: { displayName: values.displayName, email: values.email },
         });
       }
@@ -114,7 +114,7 @@ function createLoginHandler({ realm, view, findAccount, afterLoginPath }) {
     const ipKey = `${realm}|${req.ip}`;
     if (loginAttempts.isBlocked(emailKey) || loginAttemptsByIp.isBlocked(ipKey)) {
       return res.status(429).render(view, {
-        error: "Bahut zyada galat koshishein hui hain. 15 minute baad try karo.",
+        error: "Too many failed attempts. Please try again in 15 minutes.",
         email: values.email,
         next,
       });
@@ -135,7 +135,7 @@ function createLoginHandler({ realm, view, findAccount, afterLoginPath }) {
       // Jaanbujhkar ek hi message: "email galat" aur "password galat" alag batane se attacker ko
       // pata chal jata ki kaunse emails registered hain.
       return res.status(401).render(view, {
-        error: "Email ya password galat hai.",
+        error: "Invalid email or password.",
         email: values.email,
         next,
       });

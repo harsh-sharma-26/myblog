@@ -44,17 +44,17 @@ function validatePost(body) {
   const content = asString(body.content).trim();
 
   if (!title || !summary || !content) {
-    return { error: "Title, summary aur content teeno zaruri hain.", values: null };
+    return { error: "Title, summary and content are all required.", values: null };
   }
   if (title.length > MAX_TITLE) {
-    return { error: `Title ${MAX_TITLE} characters se zyada nahi ho sakta.`, values: null };
+    return { error: `Title cannot exceed ${MAX_TITLE} characters.`, values: null };
   }
   if (summary.length > MAX_SUMMARY) {
-    return { error: `Summary ${MAX_SUMMARY} characters se zyada nahi ho sakti.`, values: null };
+    return { error: `Summary cannot exceed ${MAX_SUMMARY} characters.`, values: null };
   }
   // TEXT column ki limit BYTES me hoti hai (emoji / Hindi letters 1 se zyada byte lete hain), isliye length nahi byteLength.
   if (Buffer.byteLength(content, "utf8") > MAX_BODY_BYTES) {
-    return { error: "Content bahut bada hai, thoda chhota karo.", values: null };
+    return { error: "Content is too long. Please shorten it.", values: null };
   }
   return { error: null, values: { title, summary, content } };
 }
@@ -72,17 +72,17 @@ function validateSignup(body) {
   const values = { displayName, email };
 
   if (displayName.length < MIN_NAME || displayName.length > MAX_NAME) {
-    return { error: `Naam ${MIN_NAME} se ${MAX_NAME} characters ke beech hona chahiye.`, values };
+    return { error: `Name must be between ${MIN_NAME} and ${MAX_NAME} characters.`, values };
   }
   if (email.length > MAX_EMAIL || !EMAIL_PATTERN.test(email)) {
-    return { error: "Please ek valid email daalo.", values };
+    return { error: "Please enter a valid email address.", values };
   }
   const passwordError = checkPasswordRules(password);
   if (passwordError) {
     return { error: passwordError, values };
   }
   if (password !== confirmPassword) {
-    return { error: "Dono password match nahi kar rahe.", values };
+    return { error: "Passwords do not match.", values };
   }
   return { error: null, values: { ...values, password } };
 }
@@ -94,11 +94,11 @@ function validateLogin(body) {
   const password = asString(body.password);
 
   if (!email || !password || email.length > MAX_EMAIL) {
-    return { error: "Email aur password dono daalo.", values: { email } };
+    return { error: "Please enter both email and password.", values: { email } };
   }
   // 72 bytes se lamba password sahi ho hi nahi sakta (signup me allow nahi), bcrypt ko bhejne ki zaroorat nahi.
   if (Buffer.byteLength(password, "utf8") > MAX_PASSWORD_BYTES) {
-    return { error: "Email ya password galat hai.", values: { email } };
+    return { error: "Invalid email or password.", values: { email } };
   }
   return { error: null, values: { email, password } };
 }
@@ -106,10 +106,10 @@ function validateLogin(body) {
 // Signup aur admin password script, dono yahi rules use karte hain.
 function checkPasswordRules(password) {
   if (password.length < MIN_PASSWORD) {
-    return `Password kam se kam ${MIN_PASSWORD} characters ka hona chahiye.`;
+    return `Password must be at least ${MIN_PASSWORD} characters.`;
   }
   if (Buffer.byteLength(password, "utf8") > MAX_PASSWORD_BYTES) {
-    return `Password ${MAX_PASSWORD_BYTES} bytes se lamba nahi ho sakta.`;
+    return `Password cannot exceed ${MAX_PASSWORD_BYTES} bytes.`;
   }
   return null;
 }

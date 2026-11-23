@@ -74,7 +74,7 @@ function requireLogin(req, res, next) {
   if (req.currentUser) return next();
 
   if (wantsJson(req)) {
-    return res.status(401).json({ error: "Please login karo.", loginUrl: "/login" });
+    return res.status(401).json({ error: "Please log in.", loginUrl: "/login" });
   }
   const target = req.method === "GET" ? `/login?next=${encodeURIComponent(req.originalUrl)}` : "/login";
   res.redirect(target);
@@ -88,7 +88,7 @@ function requireNormalUser(req, res, next) {
   if (req.currentUser && req.currentUser.type === "user") return next();
 
   if (wantsJson(req)) {
-    return res.status(403).json({ error: "Admin accounts post like nahi kar sakte." });
+    return res.status(403).json({ error: "Admin accounts cannot like posts." });
   }
   res.status(403).render("403");
 }

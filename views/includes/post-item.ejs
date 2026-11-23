@@ -15,7 +15,7 @@
     <div class="post-actions-secondary">
       <a class="post-edit-link" href="/posts/<%= post.id %>/edit">Edit</a>
       <%# [FIX #2] action ke end ka extra space hata diya. [FIX #6] onsubmit me confirm() lagaya: "OK" dabane pe hi delete hoga, "Cancel" pe form submit nahi hoga %>
-      <form action="/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('Kya aap sach me ye post delete karna chahte ho?');">
+      <form action="/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this post?');">
         <%- include('csrf-field') %>
         <button class="btn btn-danger">Delete</button>
       </form>
