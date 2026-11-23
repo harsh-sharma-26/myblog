@@ -3,6 +3,28 @@
 > Future reference ke liye banaya gaya. Project ko dobara samajhna ho to yahin se shuru karo.
 > Last updated: 2026-10-19 (login / signup / admin / permissions add hue, section 12 dekho)
 
+## 0. Padhne ka order (naye ho to yahin se shuru karo)
+
+✅ = abhi padho, ⭐ = sabse zaroori, ⏭️ = baad me padhna
+
+1. ✅ **1. Ye project kya hai?**
+2. ✅ **2. Tech stack**
+3. ✅ **3. Folder structure**
+4. ⭐ **5. Request ka poora safar** (ise pehle samjho, baaki sab isi se juda hai)
+5. **4. Har file kya karti hai**
+   - ✅ `app.js`, `data/database.js`, `routes/blog.js`, `routes/auth.js`, `views/`
+   - ⏭️ `LikeButton.jsx` (12.8 ke baad padhna)
+   - ⏭️ Styles, Dark / Light mode, Page loader, Responsive design, Redesign me kya badla
+6. ✅ **6. Database** (6.1, 6.2), saath me `schema.sql` kholo
+7. **12. Authentication & Authorization**
+   - ✅ 12.1 Basic baatein → 12.2 Do tarah ke log → 12.3 DB structure
+   - ⭐ 12.4 Login ka poora safar
+   - ✅ 12.5 Permissions → 12.8 Likes → 12.9 `.env` → 12.11 File map
+   - ⏭️ 12.6 Security, 12.7 JOIN, 12.10 Live DB checklist, 12.12 Testing, 12.14 Limits
+   - ⏭️ 12.13 Gotchas (code badalne se pehle zaroor padhna)
+8. ✅ **7. Project kaise chalayein**
+9. ⏭️ **8, 9, 10, 11** (git history, fixes, pending, performance): ye history hai, project samajhne ke liye zaroori nahi
+
 ## 1. Ye project kya hai?
 
 Ek **blog website** jisme **login system** hai. Do tarah ke log hain:

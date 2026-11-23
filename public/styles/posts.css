@@ -72,15 +72,6 @@
 .is-ready .posts-grid-item:nth-child(4) .post-item { animation-delay: 0.96s; }
 .is-ready .posts-grid-item:nth-child(n + 5) .post-item { animation-delay: 1.08s; }
 
-/* Card ke upar patli gradient line */
-.post-item::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0; /* top, right, bottom, left shortcut: upar ki side chipka do */
-  height: 4px;
-  background-image: linear-gradient(90deg, var(--accent), var(--accent-2));
-}
-
 /* Hover pe card halka upar uthta hai aur shadow badhti hai */
 .post-item:hover {
   transform: translateY(-4px);
@@ -110,7 +101,7 @@
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--on-accent);
-  background-image: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background-color: var(--accent);
 }
 
 .post-item h2 {
@@ -216,12 +207,12 @@
   background-color: var(--accent-soft);
 }
 
-/* Default `<hr>` ki jagah gradient line */
+/* Default `<hr>` ki jagah simple patli line */
 #post-detail hr {
-  height: 2px;
+  height: 1px;
   margin: 1.5rem 0;
   border: 0;
-  background-image: linear-gradient(90deg, var(--accent), var(--accent-2), transparent);
+  background-color: var(--border);
 }
 
 #body {
@@ -274,10 +265,10 @@
   transform: scale(0.96);
 }
 
-/* Like ho chuka ho to pink tint */
+/* Like ho chuka ho to halka red tint */
 .like-button.liked {
-  border-color: var(--accent-2);
-  background-color: var(--accent-soft);
+  border-color: var(--danger);
+  background-color: var(--danger-soft);
 }
 
 .heart-icon {
@@ -299,8 +290,8 @@
 }
 
 .like-button.liked .heart-icon svg path {
-  fill: var(--accent-2);
-  stroke: var(--accent-2);
+  fill: var(--danger);
+  stroke: var(--danger);
 }
 
 /* Light "pop" bounce when clicked */

@@ -21,24 +21,23 @@
 :root {
   color-scheme: light; /* browser ke apne controls (scrollbar, select) bhi light dikhein */
 
-  --bg: #f5f4ff; /* page ka background */
-  --bg-glow: rgba(124, 77, 255, 0.14); /* upar ka halka purple chamak */
+  --bg: #fafaf9; /* page ka background (off-white) */
   --surface: #ffffff; /* cards / forms ka background */
-  --text: #1d1a2f; /* main text */
-  --muted: #6a6784; /* halka text (author, hints) */
-  --border: #e5e2f6; /* lines aur borders */
+  --text: #1c1c1e; /* main text */
+  --muted: #6b6b70; /* halka text (author, hints) */
+  --border: #e7e5e4; /* lines aur borders */
 
-  --accent: #6a3df0; /* main brand color (purple) */
-  --accent-2: #e04ff0; /* gradient ka doosra color (pink) */
-  --accent-soft: #eee9ff; /* accent ka bahut halka shade (hover/badge) */
+  --accent: #2b5a8c; /* main brand color (shaant neela) */
+  --accent-2: #1f4570; /* accent ka gehra shade (link hover) */
+  --accent-soft: #edf2f8; /* accent ka bahut halka shade (hover/badge) */
   --on-accent: #ffffff; /* accent ke upar likha text */
 
-  --danger: #d92d3a; /* delete jaisi cheezon ke liye red */
-  --danger-soft: #ffe9eb;
+  --danger: #c0392b; /* delete jaisi cheezon ke liye red */
+  --danger-soft: #fbeeec;
 
-  --header-bg: rgba(255, 255, 255, 0.78); /* navbar (thoda transparent, blur ke saath) */
-  --shadow: 0 1px 2px rgba(29, 26, 47, 0.06), 0 8px 24px rgba(60, 40, 140, 0.08);
-  --shadow-hover: 0 2px 4px rgba(29, 26, 47, 0.08), 0 16px 40px rgba(60, 40, 140, 0.18);
+  --header-bg: rgba(250, 250, 249, 0.9); /* navbar (thoda transparent, blur ke saath) */
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.06), 0 8px 20px rgba(0, 0, 0, 0.08);
 
   --radius: 16px; /* cards ke gol kone */
   --radius-sm: 10px; /* inputs / buttons ke gol kone */
@@ -50,24 +49,23 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #0e0c1a;
-  --bg-glow: rgba(124, 77, 255, 0.22);
-  --surface: #181529;
-  --text: #ecebf7;
-  --muted: #a29fbd;
-  --border: #2b2744;
+  --bg: #141415;
+  --surface: #1c1c1e;
+  --text: #ececec;
+  --muted: #a1a1a6;
+  --border: #2e2e31;
 
-  --accent: #9a7bff;
-  --accent-2: #f07cf5;
-  --accent-soft: #2a2250;
-  --on-accent: #12091f;
+  --accent: #8ab4e0;
+  --accent-2: #a9c8ea;
+  --accent-soft: #1f2a36;
+  --on-accent: #10151b;
 
-  --danger: #ff7b86;
-  --danger-soft: #3a1b24;
+  --danger: #f08a80;
+  --danger-soft: #3a1f1d;
 
-  --header-bg: rgba(14, 12, 26, 0.78);
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.55);
+  --header-bg: rgba(20, 20, 21, 0.9);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.45), 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 /* Dark mode, case B: user ne kuch choose nahi kiya, to phone/computer ki apni setting follow karo.
@@ -77,24 +75,23 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --bg: #0e0c1a;
-    --bg-glow: rgba(124, 77, 255, 0.22);
-    --surface: #181529;
-    --text: #ecebf7;
-    --muted: #a29fbd;
-    --border: #2b2744;
+    --bg: #141415;
+    --surface: #1c1c1e;
+    --text: #ececec;
+    --muted: #a1a1a6;
+    --border: #2e2e31;
 
-    --accent: #9a7bff;
-    --accent-2: #f07cf5;
-    --accent-soft: #2a2250;
-    --on-accent: #12091f;
+    --accent: #8ab4e0;
+    --accent-2: #a9c8ea;
+    --accent-soft: #1f2a36;
+    --on-accent: #10151b;
 
-    --danger: #ff7b86;
-    --danger-soft: #3a1b24;
+    --danger: #f08a80;
+    --danger-soft: #3a1f1d;
 
-    --header-bg: rgba(14, 12, 26, 0.78);
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
-    --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.55);
+    --header-bg: rgba(20, 20, 21, 0.9);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.45), 0 8px 20px rgba(0, 0, 0, 0.35);
   }
 }
 
@@ -117,13 +114,6 @@ body {
   min-height: 100vh;
   line-height: 1.6;
   background-color: var(--bg);
-  /* Page ke upar beech me halka purple glow, taaki background flat na lage */
-  background-image: radial-gradient(
-    ellipse 70% 40% at 50% -5%,
-    var(--bg-glow),
-    transparent 70%
-  );
-  background-repeat: no-repeat;
   /* Theme badalte waqt colors smoothly change hon */
   transition:
     background-color 0.3s ease,
@@ -229,9 +219,9 @@ ol {
   border: 0;
   border-radius: 999px; /* poora gol (pill) shape */
   color: var(--on-accent);
-  /* Purple se pink gradient */
-  background-image: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 4px 14px rgba(106, 61, 240, 0.35);
+  /* Ek hi solid rang, koi gradient nahi */
+  background-color: var(--accent);
+  box-shadow: none;
   transition:
     transform 0.15s ease,
     box-shadow 0.2s ease,
@@ -242,8 +232,8 @@ ol {
 .btn:active {
   color: var(--on-accent);
   transform: translateY(-2px); /* hover pe halka upar uthta hai */
-  box-shadow: 0 8px 22px rgba(106, 61, 240, 0.45);
-  filter: brightness(1.05);
+  background-color: var(--accent-2);
+  box-shadow: var(--shadow);
 }
 
 /* Halka "ghost" button: sirf border, background nahi */
@@ -299,17 +289,13 @@ ol {
   border-bottom: 1px solid var(--border);
 }
 
-/* Logo: text ke andar gradient color */
+/* Logo: simple solid text color */
 #logo a {
   font-family: var(--font-heading);
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  background-image: linear-gradient(135deg, var(--accent), var(--accent-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent; /* text ka apna color hata do taaki gradient dikhe */
-  color: transparent;
+  color: var(--text);
 }
 
 #main-header ul {
