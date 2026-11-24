@@ -1,7 +1,7 @@
 # MyBlog — Architecture & Reference Guide
 
 > Future reference ke liye banaya gaya. Project ko dobara samajhna ho to yahin se shuru karo.
-> Last updated: 2026-11-23 (logging + `/health` endpoint add hue, site ka text English me hua: section 13 aur 14 dekho)
+> Last updated: 2026-11-24 (**AI se blog posts**: admin review portal aur free AI generator jo har 12 ghante draft banata hai. Section 15, 16 aur 17 dekho)
 
 ## 0. Padhne ka order (naye ho to yahin se shuru karo)
 
@@ -26,6 +26,12 @@
 9. ⏭️ **8, 9, 10, 11** (git history, fixes, pending, performance): ye history hai, project samajhne ke liye zaroori nahi
 10. ⭐ **13. Logging & Health check** (server par kuch toote to yahin se shuru karo)
 11. ⏭️ **14. Site ka text English me** (naya text likhte waqt dhyan rakhna)
+12. ⭐ **15. AI Posts: admin review portal** (AI ki likhi post pehle admin ke paas aati hai, phir approve/reject)
+13. ⭐ **16. AI post generator** (har 12 ghante apne aap draft kaise banta hai, free me)
+   - ✅ 16.1 Seedhi baat → 16.3 Ek run ka poora safar → 16.10 Kaunsi setting kahan hai
+   - ⭐ 16.12 Kuch toote to kya karein
+   - ⏭️ baaki details (topics, sources, checks, GitHub Actions) jab code badalna ho tab
+14. ⏭️ **17. Local MySQL reset** (laptop pe `ECONNREFUSED` aaye to)
 
 ## 1. Ye project kya hai?
 
@@ -57,6 +63,8 @@ Ye **CRUD** (Create, Read, Update, Delete) + **authentication/authorization** ka
 | **bcryptjs** | password hashing | password DB me hash hoke jata hai, plain nahi (section 12) |
 | **cookie-session** | login session | login ki yaad browser ki signed cookie me rehti hai, alag session table nahi |
 | nodemon | dev tool | `npm start` pe file change hote hi server restart |
+| **@google/genai** | AI (Google Gemini, free tier) | AI se blog post ka draft likhwana (section 16) |
+| **GitHub Actions** | scheduler (free, GitHub ka) | har 12 ghante AI generator script chalana (section 16.9) |
 
 ## 3. Folder structure
 
@@ -64,14 +72,21 @@ Ye **CRUD** (Create, Read, Update, Delete) + **authentication/authorization** ka
 myBlog/
 ├── app.js                  ← Entry point. Server yahin se start hota hai (session + CSRF middleware yahin lagte hain)
 ├── schema.sql              ← DB tables ka SQL (PART 1 = fresh DB, PART 2 = purane DB ka upgrade)
-├── package.json            ← Dependencies + scripts ("npm start", "npm run set-admin-password")
+├── migrations/                                                              [NAYA FOLDER, section 15/16]
+│   ├── 001-ai-drafts.sql   ← ai_drafts table (AI drafts ki review queue)
+│   └── 002-ai-assisted.sql ← posts.ai_assisted column ("AI-assisted" label)
+├── .github/workflows/
+│   └── ai-post.yml         ← GitHub Actions: har 12 ghante AI generator chalata hai [NAYA, section 16.9]
+├── package.json            ← Dependencies + scripts ("npm start", "npm run set-admin-password", "npm run generate-post")
 ├── .env                    ← DB credentials + SESSION_SECRET (gitignored, kabhi commit mat karna)
 ├── logs/app.log            ← local par server ke logs (gitignored, apne aap banta hai, section 13) [NAYA]
 ├── data/
 │   └── database.js         ← MySQL connection pool
 ├── routes/
 │   ├── blog.js             ← Posts ke routes (list/create/edit/delete/like) + DB queries
-│   └── auth.js             ← signup, login, admin login, logout            [NAYA]
+│   ├── auth.js             ← signup, login, admin login, logout            [NAYA]
+│   ├── admin-ai-drafts.js  ← /admin/ai-posts: AI drafts ka review portal (approve/reject/edit) [NAYA, section 15]
+│   └── ai-drafts-api.js    ← /api/ai-drafts: AI generator yahan draft bhejta hai (secret token se) [NAYA, section 15.5]
 ├── middleware/                                                              [NAYA FOLDER]
 │   ├── auth.js             ← "kaun hai?" (loadCurrentUser) + login-required guards
 │   ├── csrf.js             ← CSRF token check (har POST par)
@@ -82,15 +97,23 @@ myBlog/
 │   ├── validation.js       ← saare forms / :id ka server-side input check
 │   ├── password.js         ← bcrypt hash / verify
 │   ├── async-handler.js    ← async route ke error ko 500 page pe bhejta hai (pehle blog.js me tha)
-│   └── logger.js           ← logger: console me hamesha, file me sirf local par (section 13) [NAYA]
+│   ├── logger.js           ← logger: console me hamesha, file me sirf local par (section 13) [NAYA]
+│   └── ai-drafts.js        ← AI draft ki validation + approve pe "Sources" list jodna [NAYA, section 15]
 ├── scripts/
-│   └── set-admin-password.js ← admin ka password terminal se set karne ki script [NAYA]
+│   ├── set-admin-password.js ← admin ka password terminal se set karne ki script [NAYA]
+│   └── ai-generator/         ← AI post generator (section 16)                   [NAYA FOLDER]
+│       ├── generate-post.js  ← main script: queue check → topic → research → likho → jaancho → bhejo
+│       ├── topics.js         ← 6 topics + agla topic kaunsa ho
+│       ├── sources.js        ← RSS feeds se asli logon ke articles laana
+│       ├── prompts.js        ← AI ko likhne ke rules
+│       └── checks.js         ← copy-paste / nakli quote / length check
 ├── views/                  ← EJS templates (HTML pages)
 │   ├── posts-list.ejs      ← /posts  (saare posts)
 │   ├── post-detail.ejs     ← /posts/:id (ek post poora)
 │   ├── create-post.ejs     ← /new-post (form)
 │   ├── update-post.ejs     ← /posts/:id/edit (form)
 │   ├── login.ejs / signup.ejs / admin-login.ejs ← auth pages           [NAYE]
+│   ├── admin-ai-posts.ejs / admin-ai-post-review.ejs / admin-ai-post-edit.ejs ← AI posts portal [NAYE, section 15]
 │   ├── 400.ejs / 403.ejs / 404.ejs / 500.ejs ← error pages (400 = validation fail, 403 = permission nahi)
 │   └── includes/           ← reusable chhote tukde
 │       ├── head.ejs        ← <head> (meta, fonts, base.css, title, csrf meta tag)
@@ -100,7 +123,7 @@ myBlog/
 │       ├── csrf-field.ejs  ← har form ka chhupa hua security token field         [NAYA]
 │       └── form-error.ejs  ← form ke upar laal error box                          [NAYA]
 └── public/                 ← browser ko seedha serve hota hai (static)
-    ├── styles/             ← base.css (theme variables + header + buttons), forms.css, posts.css, loader.css
+    ├── styles/             ← base.css (theme variables + header + buttons), forms.css, posts.css, loader.css, admin.css (AI posts portal)
     ├── scripts/theme.js    ← light/dark toggle + navbar active link
     ├── scripts/loader.js   ← page loader ka logic (setTimeout)
     └── react/LikeButton.jsx← React like-button component
@@ -248,7 +271,7 @@ Form submit (create): `create-post.ejs` form (`_csrf` token ke saath) → `POST 
 
 ## 6. Database (asli schema `schema.sql` me hai)
 
-4 tables. **Purane `authors` aur `posts` me data nahi tootta**, naye tables add hue aur 3 chhote badlav hue.
+4 tables (+ AI wala 5th table `ai_drafts`, section 15.3). **Purane `authors` aur `posts` me data nahi tootta**, naye tables add hue aur 3 chhote badlav hue.
 
 | Table | Kaun hai | Columns |
 |---|---|---|
@@ -256,6 +279,9 @@ Form submit (create): `create-post.ejs` form (`_csrf` token ke saath) → `POST 
 | **`users`** (naya) | **Normal user** | `id` PK, `email` (UNIQUE), `password_hash`, `display_name`, `created_at` |
 | **`posts`** (purana) | post | `id` PK, `title`, `summary`, `body`, `author_id` (ab **NULL ho sakta hai**, FK → authors), `user_id` (**naya**, NULL, FK → users), `likes` (counter) |
 | **`post_likes`** (naya) | kisne kya like kiya | `user_id` FK → users, `post_id` FK → posts, `created_at`; **PRIMARY KEY (user_id, post_id)** |
+| **`ai_drafts`** (naya, 2026-11-24) | AI ki likhi posts jo abhi review me hain | section 15.3 |
+
+`posts` me ek aur naya column (2026-11-24): **`ai_assisted`** (0 ya 1). 1 = ye post AI draft se approve hui thi, page pe "AI-assisted" label dikhta hai (section 16.8).
 
 Relations (section 12.3 me poora samjhaya hai):
 - `authors 1 — N posts` (`posts.author_id`): admin ki posts
@@ -297,6 +323,8 @@ Pehli baar login system chalane ke liye (live DB par) ye 3 kaam zaruri hain, det
 1. `schema.sql` ka **PART 2** DB par chalao (backup ke baad).
 2. `.env` me `SESSION_SECRET` ho.
 3. `npm run set-admin-password -- <author-email>` se har admin ka password set karo.
+
+AI generator ko local pe test karna ho (section 16.11): `.env` me `GEMINI_API_KEY` aur `AI_DRAFTS_API_TOKEN` daalo, server chalu rakho, phir `DRY_RUN=1 npm run generate-post`.
 
 ## 8. Git history ka summary
 - Railway DB → **Aiven DB** migration
@@ -511,6 +539,9 @@ Faide: double-click, do tabs, retry se count kabhi galat nahi hota (idempotent).
 | `NODE_ENV=production` | production me | Cookie sirf HTTPS par jati hai |
 | `DB_SSL_CA` | optional | Pehle jaisa (section 9, fix #8) |
 | `LOG_FILE` | optional | Logs ko file me bhi likhna ho to path, jaise `logs/app.log`. Local par default yahi hai, production me default band (section 13) |
+| `AI_DRAFTS_API_TOKEN` | AI generator ke liye | AI drafts API ka secret token (section 15.5). Na ho to API band rehta hai (503). Local `.env` + Render + GitHub Secrets teeno me **same** |
+| `GEMINI_API_KEY` | sirf generator script ke liye | Google AI Studio ki free key (section 16). Local `.env` + GitHub Secrets. Render ko iski zaroorat nahi |
+| `AI_DRAFTS_MAX_PENDING` | optional | Kitne pending drafts tak naye lena (default 10) |
 
 ### 12.10 Live DB par chalane ka checklist (ek baar)
 
@@ -533,7 +564,7 @@ Faide: double-click, do tabs, retry se count kabhi galat nahi hota (idempotent).
 | `app.js` | session + auth + CSRF middleware ka order, `SESSION_SECRET` check, 404 handler |
 | `routes/auth.js` | signup / login / admin login / logout, rate limits, `startSession` |
 | `routes/blog.js` | posts routes, `POST_SELECT` (LEFT JOIN), `loadModifiablePost`, `setLike` transaction |
-| `middleware/auth.js` | `loadCurrentUser`, `requireLogin`, `requireNormalUser`, `redirectIfLoggedIn` |
+| `middleware/auth.js` | `loadCurrentUser`, `requireLogin`, `requireNormalUser`, `requireAdmin` (section 15), `redirectIfLoggedIn` |
 | `middleware/csrf.js` | token banana + har POST par verify |
 | `middleware/rate-limit.js` | in-memory counter (`isBlocked`, `hit`, `reset`) |
 | `utils/permissions.js` | `canModifyPost`, `ownerFilter` |
@@ -659,3 +690,308 @@ Users ko dikhne wala saara text pehle kuch jagah Hinglish me tha (jaise "Naye ho
 ### 14.1 Pending: Render deploy aur `npm start`
 - `package.json` me `"start": "nodemon app.js"` hai. `nodemon` devDependency hai; agar Render par `NODE_ENV=production` set ho to wo install nahi hota aur deploy fail ho jata hai (Render purana version hi chalata rehta hai). Production ke liye `"start": "node app.js"` aur `"dev": "nodemon app.js"` behtar hai. **Abhi badla nahi.**
 - GitHub par push karne ke baad bhi site na badle to Render → Events/Deploys me deploy status, Auto-Deploy setting aur branch (`main`) check karo.
+
+## 15. AI Posts: admin review portal (2026-11-24)
+
+### 15.1 Seedhi baat (ek example se)
+
+Socho ek **akhbaar (newspaper)** hai:
+- **Reporter** khabar likh ke editor ki table pe rakh deta hai.
+- **Editor** padhta hai. Achhi lagi to chhapne bhej deta hai, thodi galti ho to sudhaar deta hai, bekaar ho to fenk deta hai.
+- Reporter khud kabhi akhbaar me kuch nahi chhaap sakta.
+
+Hamari site me:
+- **Reporter = AI** (section 16 ka generator). Wo post likh ke `ai_drafts` table me "pending" banake rakh deta hai.
+- **Editor's table = `/admin/ai-posts` page.** Sirf admin ko dikhta hai.
+- **Editor = tum (admin).** Approve karoge to post site pe tumhare naam se chhap jayegi. Reject karoge to kabhi nahi chhapegi.
+
+**Sabse zaroori rule:** AI kabhi seedha site pe post nahi daal sakta. Har post admin ke Approve button se hi live hoti hai.
+
+### 15.2 Poora safar (diagram)
+
+```
+AI generator (GitHub Actions)
+      │  POST /api/ai-drafts  (secret token ke saath)
+      ▼
+ai_drafts table  →  status = "pending"
+      │
+      ▼
+Admin: /admin/ai-posts  (navbar me "AI Posts 3" badge = 3 pending)
+      │
+      ├── [Review]  → poora preview, bilkul waisa jaisa site pe dikhega
+      ├── [Edit]    → title / summary / content / sources sudhaaro (approve se pehle)
+      ├── [Approve & publish] → posts table me nayi post, author = tum, ai_assisted = 1
+      │                          ai_drafts.status = "approved"
+      └── [Reject…] → reason likho (optional) → status = "rejected"
+                      site pe kabhi nahi dikhegi, lekin record bacha rehta hai
+```
+
+### 15.3 `ai_drafts` table (migration `001-ai-drafts.sql`)
+
+Ek row = AI ka ek draft. Example row:
+
+| Column | Example value | Matlab |
+|---|---|---|
+| `id` | 7 | draft ka number |
+| `title` | Finding Your Drive When You Feel Stuck | post ka title |
+| `summary` | How to build lasting motivation… | chhota description |
+| `body` | (poora article) | post ka text |
+| `sources` | `What Was Really Behind My "Laziness" (Patrick Dahlstrom, Tiny Buddha): https://…` | ek line = ek source. Approve pe post ke end me "Sources:" list ban ke judta hai |
+| `topic` | motivation | kis topic pe hai (AI aage same topic baar-baar na le) |
+| `status` | `pending` / `approved` / `rejected` | abhi kis halat me hai |
+| `reject_reason` | "Too generic" | reject ka reason (AI agli baar isse seekhta hai) |
+| `reviewed_by` | 1 | kis admin ne approve/reject kiya (`authors.id`) |
+| `reviewed_at` | 2026-11-24 10:15 | kab |
+| `post_id` | 12 | approve hone pe jo post bani uska id |
+| `created_at`, `updated_at` | | kab bana, kab badla |
+
+**Posts me `status` column kyun nahi daala, alag table kyun?**
+Agar drafts bhi `posts` me hote, to site ki **har** query (list, detail, likes…) me `WHERE status = 'published'` likhna padta. Ek jagah bhi bhool gaye, to unapproved post public ho jaati. Alag table me ye galti ho hi nahi sakti, aur purane `posts` code ko chhedna bhi nahi pada.
+
+### 15.4 Pages aur buttons
+
+| URL | Kya hai | Kaun |
+|---|---|---|
+| `GET /admin/ai-posts` | list. Tabs: Pending / Approved / Rejected (har tab me ginti) | sirf admin |
+| `GET /admin/ai-posts/:id` | ek draft ka preview + buttons | sirf admin |
+| `GET/POST /admin/ai-posts/:id/edit` | edit form (sirf pending draft) | sirf admin |
+| `POST /admin/ai-posts/:id/approve` | publish (confirm popup ke baad) | sirf admin |
+| `POST /admin/ai-posts/:id/reject` | reject (reason optional) | sirf admin |
+
+- Normal user ye URL khole to **403**. Guest khole to **login page**.
+- Approved ya rejected draft dobara approve/edit nahi hota (**409**). Approve ho chuki post badalni ho to normal post ki tarah `/posts/:id/edit` se badlo.
+
+### 15.5 AI ke liye API (`routes/ai-drafts-api.js`)
+
+Ye wo "darwaza" hai jahan se AI script draft andar bhejti hai. Browser ke liye nahi hai, script ke liye hai, isliye login/cookie nahi, **secret token** lagta hai. Token ko aise samjho jaise ghar ki chaabi: jiske paas token hai wahi andar draft rakh sakta hai.
+
+| API | Kaam |
+|---|---|
+| `POST /api/ai-drafts` | naya draft "pending" banake rakhta hai. **Kabhi publish nahi karta.** |
+| `GET /api/ai-drafts/context` | script ko batata hai: queue me jagah hai? pichle topics, sources, reject reasons |
+
+Example (local pe test karne ke liye):
+```bash
+curl -X POST http://localhost:3000/api/ai-drafts \
+  -H "Authorization: Bearer <AI_DRAFTS_API_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Test","summary":"Test summary","body":"Hello","sources":["https://example.com"]}'
+# jawab: {"id":5,"status":"pending"}
+```
+
+Jawab ke codes:
+
+| Code | Matlab |
+|---|---|
+| 201 | draft ban gaya |
+| 400 | data galat (title/summary/body missing ya bahut lamba) |
+| 401 | token galat ya nahi bheja |
+| 429 | queue full (10 pending), ya galat token se bahut try (15 min block) |
+| 503 | server pe `AI_DRAFTS_API_TOKEN` set hi nahi hai, isliye API band hai |
+
+### 15.6 Suraksha (kya-kya socha gaya)
+
+- **Admin check server pe:** har `/admin/ai-posts` route `requireLogin` + `requireAdmin` ke peeche hai. Sirf link chhupana kaafi nahi hota.
+- **CSRF:** Approve/Reject/Edit forms me CSRF token hai (section 12.6). Koi nakli site tumhare naam se approve nahi kara sakti.
+- **Double-click se do posts nahi bantein:** approve ek transaction me hota hai aur draft ki row `SELECT … FOR UPDATE` se lock hoti hai. Example: tumne Approve 2 baar jaldi-jaldi dabaya. Pehla click post banata hai, doosra wait karta hai, phir dekhta hai ki status "approved" ho chuka hai aur ruk jata hai.
+- **Queue limit 10:** tum kuch din review na karo to bhi AI bekaar me drafts nahi banata rehta.
+- **Links safe:** sources me sirf `http(s)://` wale links clickable bante hain. `javascript:…` jaisa text sirf text rehta hai.
+- **Token:** galat token baar-baar (20 baar / 15 min) bhejne wala IP block hota hai, aur token compare karne ka tareeka timing attack se safe hai.
+
+### 15.7 Files
+
+| File | Kaam |
+|---|---|
+| `routes/admin-ai-drafts.js` | portal ke saare routes + navbar badge ka pending count (`loadAiPendingCount`) |
+| `routes/ai-drafts-api.js` | `POST /api/ai-drafts`, `GET /api/ai-drafts/context` (session/CSRF se **pehle** mount, `app.js` dekho) |
+| `utils/ai-drafts.js` | draft validation, sources ko body ke end me jodna, max pending |
+| `middleware/auth.js` | `requireAdmin` |
+| `views/admin-ai-posts.ejs`, `admin-ai-post-review.ejs`, `admin-ai-post-edit.ejs` | teen pages |
+| `views/includes/header.ejs` | admin ke navbar me "AI Posts (n)" link |
+| `public/styles/admin.css` | portal ki styling (dark mode bhi) |
+| `migrations/001-ai-drafts.sql` | table banana (end me undo ka `DROP` bhi likha hai) |
+
+## 16. AI post generator: har 12 ghante apne aap draft (2026-11-24)
+
+### 16.1 Seedhi baat
+
+Ek chhota **robot (script)** hai jo din me 2 baar (subah 5:30 aur shaam 5:30, IST) apne aap uthta hai aur:
+1. Tumhari site se poochta hai: "Queue me jagah hai?"
+2. Ek topic chunta hai (jaise *overthinking*).
+3. Internet se **asli logon ke likhe articles** padhta hai (jaise Tiny Buddha pe logon ki apni kahaniyan).
+4. **Google Gemini (AI)** se un sab ke experiences mila ke **apne shabdon me** ek nayi post likhwata hai.
+5. Code se jaanchta hai ki copy-paste ya nakli quote to nahi.
+6. Draft tumhare portal (section 15) me "pending" bhej deta hai.
+
+Robot chalta hai **GitHub ke computer pe** (GitHub Actions), tumhare laptop pe nahi. Laptop band ho tab bhi chalega.
+
+**Kharcha: ₹0.** Gemini ka free tier, RSS feeds free, GitHub Actions public repo ke liye free.
+
+### 16.2 Free kaise hua (aur kya try karke chhoda)
+
+| Socha tha | Kya hua | Kya kiya |
+|---|---|---|
+| Claude API | paid hai | chhoda (student budget) |
+| Gemini + Google Search (AI khud search kare) | free tier me Gemini 3.x pe search **nahi** milta, aur Gemini 2.5 naye users ke liye band hai | search ki jagah **RSS** |
+| **RSS feeds** se articles + Gemini sirf likhe | dono free, koi extra key nahi | ✅ ye chal raha hai |
+
+**RSS kya hai?** Jaise YouTube pe kisi channel ko subscribe karo to naye videos ki list mil jaati hai, waise hi blogs ek **RSS feed** dete hain: naye posts ki list (title, author, link, aur kai blogs me poora text). Ye banaya hi isliye jata hai ki dusre programs padh sakein. Example: `https://tinybuddha.com/tag/overthinking/feed/` kholo, overthinking wale latest 10 posts dikhenge.
+
+### 16.3 Ek run ka poora safar (asli log ke saath)
+
+```
+2026-11-24T08:05:51Z AI generator start. site=https://… dryRun=false
+2026-11-24T08:05:51Z Queue: 0/10 pending                       ← 1) jagah hai
+2026-11-24T08:05:51Z Topic: overthinking                       ← 2) topic chuna
+2026-11-24T08:05:54Z Articles: 5 (Tiny Buddha ×4, James Clear)  ← 3) 5 alag logon ke articles
+2026-11-24T08:06:08Z   gemini-3.8-flash busy (503), retrying in 20s   ← Gemini busy tha
+2026-11-24T08:07:32Z Attempt 1: model=gemini-3.6-flash words=1215 ok=true   ← 4+5) likha, checks pass
+2026-11-24T08:07:32Z Draft #3 sent (topic=overthinking, … sources=4)       ← 6) portal me pahunch gaya
+```
+
+Ek run me ~2 minute lagte hain.
+
+### 16.4 Topics (`scripts/ai-generator/topics.js`)
+
+6 topics: **habits, overthinking, motivation, productivity, relationships, confidence**.
+
+**Agla topic kaise chunta hai:** pichle ~40 drafts me jo topic **sabse kam** aaya ho, wahi. Aur jo pichli baar likha tha wo turant dobara nahi.
+Example: habits 3 baar, overthinking 3, motivation 2, baaki 2-2 → agla topic motivation/productivity/relationships/confidence me se koi ek (random).
+
+Naya topic jodna ho to `TOPICS` list me ek line jod do (Tiny Buddha ka tag naam bhi dena hoga).
+
+### 16.5 Research kahan se (`sources.js`)
+
+| Source | Feed | Kya milta hai |
+|---|---|---|
+| **Tiny Buddha** | `tinybuddha.com/tag/<topic>/feed/` (+ page 2) | aam logon ki first-person kahaniyan, poora text (1000-1900 shabd) |
+| **James Clear** | `jamesclear.com/?s=<topic>&feed=rss2` | habits/productivity pe articles |
+
+**Article chunne ke rules:**
+- kam se kam **400 shabd** (sirf teaser wale nahi)
+- har article **alag author** ka (taaki ek hi insaan ki baat copy na ho, kai logon ke experiences mile)
+- jo article pehle kisi draft me use ho chuka, wo dobara nahi
+- Tiny Buddha se max 4, James Clear se max 1. Kul 3-5 articles. 3 se kam mile to run ruk jata hai.
+- AI ko har article ke pehle 1200 shabd hi bheje jaate hain (free tier ke tokens bachane ke liye).
+
+**robots.txt ka dhyan:** har site ek `robots.txt` file rakhti hai jisme likha hota hai ki bots kya padh sakte hain. Tiny Buddha ne apne **search** (`/?s=`) ko bots ke liye mana kiya hai, isliye hum search nahi, **tag feeds** use karte hain (wo allowed hain). James Clear sab allow karta hai.
+
+### 16.6 AI se likhwana (`prompts.js` + Gemini)
+
+**AI ko diye gaye rules (short me):**
+- sab kuch **apne shabdon me**, kam se kam 3 sources ke ideas mila ke
+- 2-4 **chhote quotes** (25 shabd tak), hubahu source se, naam ke saath. Example: `"Perfection as a destination is what causes procrastination." (Chris Wilson, Tiny Buddha)`
+- koi nakli quote, naam, kahani ya number **nahi**
+- medical/dawai ki salah nahi. Anxiety/depression jaisa topic ho to professional se baat karne ki salah
+- plain text (site Markdown nahi dikhati), 900-1300 shabd
+- pichle titles jaisa title nahi, aur admin ke reject reasons dhyan me rakhna
+
+**Jawab ka format fix hai (JSON):** `{ title, summary, body, usedSources: [1, 3, 4] }`. Gemini ko schema diya jata hai, to format galat nahi aata.
+
+**Models (sab free):** pehle `gemini-3.8-flash`. Busy (503) ho to 20 sec ruk ke ek baar aur, phir bhi na chale to `gemini-3.6-flash`, phir `gemini-3.5-flash-lite`. Free tier me 3.8 aksar busy rehta hai, isliye zyada tar 3.6 likhta hai.
+
+### 16.7 Code se jaanch (`checks.js`)
+
+AI pe aankh band karke bharosa nahi. Draft bhejne se pehle ye 3 check:
+
+| Check | Kaise | Example |
+|---|---|---|
+| **Copy-paste** | quotes hata ke, post ka har **12 shabdon** ka tukda sources se milate hain | source me likha tha *"I spent years believing that if I just worked harder I would finally feel enough"* aur AI ne bina quotes ke wahi 12 shabd likh diye → **fail** |
+| **Nakli quote** | har quote ke shabd lagaatar kisi source me hone chahiye | AI ne `"Kindness is the best medicine" (Jane, Tiny Buddha)` likha, par kisi source me ye line hai hi nahi → **fail** |
+| **Format** | title 10-120 chars, summary 20-250, body 600-2200 shabd, quote 35 shabd se lamba nahi | 300 shabd ki post → **fail** |
+
+Fail hua to AI ko galti batakar **ek baar dobara** likhwate hain. Doosri baar bhi fail → draft **nahi** bheja jata, run laal (failed) dikhta hai. Markdown ke `#`, `**` jaise nishaan apne aap saaf ho jaate hain.
+
+### 16.8 "AI-assisted" label (migration `002-ai-assisted.sql`)
+
+- `posts` me naya column `ai_assisted` (0/1). Approve karte hi 1 lagta hai.
+- Post page pe title/author ke neeche: **"AI-assisted · Reviewed by Harsh Sharma"** (naam = jis admin ne approve kiya, post usi ke naam se banti hai).
+- Normal posts (insaan ki likhi) pe 0, koi label nahi.
+- Review page ke preview me bhi ye label dikhta hai, taaki approve se pehle pata ho.
+
+### 16.9 GitHub Actions: robot ko kaun jagata hai (`.github/workflows/ai-post.yml`)
+
+GitHub Actions = GitHub ka free computer jo tumhare bataye time pe tumhara code chala deta hai.
+
+```yaml
+cron: "0 0,12 * * *"
+```
+Is line ka matlab: **har din, 00:00 aur 12:00 baje (UTC)**. India UTC se 5:30 ghante aage hai, to **5:30 AM aur 5:30 PM IST**.
+(Cron ke 5 hisse: minute, ghanta, din, mahina, hafte ka din. `0 0,12 * * *` = minute 0, ghanta 0 aur 12, har din, har mahina, har weekday.)
+
+Har run me: code checkout → Node 22 → `npm ci` → `npm run generate-post` (secrets env me milte hain).
+
+**Haath se chalana:** GitHub repo → **Actions** → **AI post generator** → **Run workflow**.
+
+**Dhyan rakhna:**
+- Schedule sirf `main` branch ki file se chalta hai.
+- GitHub ke schedule kabhi-kabhi 10-30 minute late chalte hain. Normal hai.
+- **60 din ka rule:** public repo me 60 din tak koi commit na ho to GitHub scheduled workflows band kar deta hai. Actions tab me **Enable** dabana padega.
+- **Public repo ke logs sab dekh sakte hain**, isliye script logs me sirf topic, draft id aur counts likhti hai, post ka content nahi. Secrets kabhi logs me nahi dikhte.
+- Do run ek saath nahi chalte (`concurrency`).
+
+### 16.10 Kaunsi setting kahan rakhi hai
+
+Teen jagah hain, aur teeno alag computers ke liye hain:
+
+| Setting | Laptop (`.env`) | Render (live site) → Environment | GitHub → Settings → Secrets → Actions |
+|---|---|---|---|
+| `AI_DRAFTS_API_TOKEN` | ✅ | ✅ (site token check karti hai) | ✅ (script token bhejti hai) |
+| `GEMINI_API_KEY` | ✅ (local test ke liye) | ❌ zaroorat nahi | ✅ |
+| `SITE_URL` | optional (default `http://localhost:3000`) | ❌ | ✅ live site ka link, end me `/` nahi |
+
+**Yaad rakhne ka tareeka:** token = chaabi. Site (Render) ke paas taala hai, script (GitHub) ke paas chaabi. Dono me **same** token hona chahiye.
+
+Token banana: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+Gemini key: aistudio.google.com → Get API key → Create.
+
+### 16.11 Local pe kaise chalayein
+
+```bash
+DRY_RUN=1 npm run generate-post   # sirf terminal me post dikhata hai, kahin bhejta nahi (test ke liye best)
+npm run generate-post             # asli draft banake SITE_URL (default localhost:3000) pe bhejta hai
+```
+Local server (`npm start`) chal raha hona chahiye, warna "Site unreachable" aayega.
+
+### 16.12 Kuch toote to kya karein
+
+GitHub → Actions → laal (failed) run kholo → "Generate draft" step ka log padho. Last line `FAILED: …` batayegi kya hua:
+
+| Log me dikhe | Matlab | Kya karo |
+|---|---|---|
+| `Queue is full … Skipping` | 10 drafts pending hain (ye error nahi, run green hi rehta hai) | portal pe drafts review karo |
+| `Context request failed (401)` | GitHub ka token aur Render ka token alag hai | dono jagah same token daalo |
+| `Context request failed (503)` | Render pe `AI_DRAFTS_API_TOKEN` set nahi | Render env me daalo, redeploy |
+| `Site unreachable` | `SITE_URL` galat, ya site down | secret check karo, `/health` kholo |
+| `All Gemini models failed … 429` | free limit khatam / Google ne free tier badla | thoda wait. Baar-baar ho to AI Studio me limits dekho |
+| `All Gemini models failed … 503` | Gemini bahut busy | kuch nahi, agla run 12 ghante baad apne aap |
+| `Only 2 usable articles` | feeds down ya saare articles pehle use ho chuke | thode din me naye articles aa jayenge. Bahut baar ho to `topics.js` / `sources.js` me naya source jodo |
+| `Draft failed checks twice` | AI ne copy kiya / nakli quote | kuch nahi, agla run naye sirse try karega |
+| Approve pe error (live site) | Aiven pe migration 002 nahi chali | `migrations/002-ai-assisted.sql` Aiven pe chalao |
+
+### 16.13 Limits aur aage ke options
+
+- **Free tier kabhi bhi badal sakta hai.** Google limits ya terms badle to script ruk sakti hai. Site pe koi asar nahi padega. Tab paid model (Gemini paid / Claude) pe switch karna `generate-post.js` me chhota sa badlav hai.
+- Free tier me Google content ko apne AI sudharne me use kar sakta hai. Posts waise bhi public hain, isliye yahan dikkat nahi.
+- Research sirf RSS se hai. Isliye utna gehra nahi jitna "AI khud web search kare" me hota. Naye source jodne ho to `sources.js` me feed URL jodo (pehle us site ka `robots.txt` check karna).
+- Reddit/Quora jaan-boojh ke nahi: unki terms automated access pe rok lagati hain.
+- **Gemini key rotate karna:** key kabhi chat/kahin aur likhi gayi ho to AI Studio me nayi key banao, `.env` + GitHub Secret me badlo, purani delete karo.
+
+## 17. Local MySQL reset (2026-11-24)
+
+**Kya hua tha:** `npm start` pe `Database connection FAILED … ECONNREFUSED` aa raha tha. Code me galti nahi thi, **MySQL hi band tha**.
+**Kyun:** Homebrew ne MySQL ko 9.5 se 26.7 pe upgrade kar diya. 26.7 purane 9.5 ka data folder nahi khol sakta (`Cannot upgrade from 90500 to 260700`), isliye start hote hi band ho jata tha.
+**Kya kiya:** local data sirf testing ka tha, to purana folder hata ke naya khali MySQL banaya, `schema.sql` se tables banaye, aur admin dobara banaya.
+
+**Aage kabhi `ECONNREFUSED` aaye (laptop pe) to:**
+1. `brew services list` → mysql `started` hai?
+2. Nahi to MySQL ka log dekho: `ls -t /opt/homebrew/var/mysql/*.err | head -1 | xargs tail -20`
+3. Usme `Cannot upgrade` dikhe → wahi upgrade wali problem. `brew upgrade` se pehle dhyan rakhna.
+
+**Naya local DB setup (yaad ke liye):**
+```bash
+mysql -uroot -e "CREATE DATABASE blog"
+mysql -uroot blog < schema.sql
+mysql -uroot blog -e "INSERT INTO authors (Name, Email) VALUES ('Naam', 'email@example.com')"
+npm run set-admin-password -- email@example.com
+```
