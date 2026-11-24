@@ -888,7 +888,19 @@ Naya topic jodna ho to `TOPICS` list me ek line jod do (Tiny Buddha ka tag naam 
 
 **Jawab ka format fix hai (JSON):** `{ title, summary, body, usedSources: [1, 3, 4] }`. Gemini ko schema diya jata hai, to format galat nahi aata.
 
-**Models (sab free):** pehle `gemini-3.8-flash`. Busy (503) ho to 20 sec ruk ke ek baar aur, phir bhi na chale to `gemini-3.6-flash`, phir `gemini-3.5-flash-lite`. Free tier me 3.8 aksar busy rehta hai, isliye zyada tar 3.6 likhta hai.
+**Models (sab free):** `gemini-3.8-flash` → `gemini-3.6-flash` → `gemini-3.5-flash-lite`. Free tier me ye aksar "high demand" (503) bolte hain, aur ye busy-pan kuch minute me aata-jaata hai. Isliye script **rounds** me try karti hai:
+
+```
+Round 1: 3.8 busy → 3.6 busy → lite busy → 30 sec ruko
+Round 2: 3.8 busy → 3.6 ✅ post mil gayi
+(nahi mili to: 1 min ruko → round 3 → 2 min → round 4 → 4 min → round 5)
+```
+
+- Ek request **2 minute** me jawab na de to kaat di jaati hai (ek baar ek request 4.5 minute latki rahi thi).
+- Poore run me Gemini pe **max 15 minute**. Uske baad saaf error ke saath ruk jaati hai (workflow ki limit 25 min hai).
+- 429 (free limit khatam) wala model us run me dobara try nahi hota. 400/401/403 (key galat) pe turant ruk jaati hai, kyunki wait karne se key theek nahi hogi.
+
+**2026-11-24 ki ghatna:** haath se chalaya run laal (fail) hua. Wajah: teeno models ek saath 503 de rahe the, aur purana code har model ko sirf 1 retry deta tha. Isi ke baad rounds wala tareeka aaya.
 
 ### 16.7 Code se jaanch (`checks.js`)
 
@@ -967,7 +979,8 @@ GitHub → Actions → laal (failed) run kholo → "Generate draft" step ka log 
 | `Context request failed (503)` | Render pe `AI_DRAFTS_API_TOKEN` set nahi | Render env me daalo, redeploy |
 | `Site unreachable` | `SITE_URL` galat, ya site down | secret check karo, `/health` kholo |
 | `All Gemini models failed … 429` | free limit khatam / Google ne free tier badla | thoda wait. Baar-baar ho to AI Studio me limits dekho |
-| `All Gemini models failed … 503` | Gemini bahut busy | kuch nahi, agla run 12 ghante baad apne aap |
+| `All Gemini models failed … 503` | Gemini 15 minute tak lagaataar busy raha (script ne 5 rounds try kiye) | kuch nahi, agla run 12 ghante baad apne aap. Jaldi chahiye to 1-2 ghante baad **Run workflow** |
+| `Gemini rejected the request (400/401/403)` | Gemini key galat / delete ho chuki | AI Studio me nayi key banao, GitHub Secret `GEMINI_API_KEY` badlo |
 | `Only 2 usable articles` | feeds down ya saare articles pehle use ho chuke | thode din me naye articles aa jayenge. Bahut baar ho to `topics.js` / `sources.js` me naya source jodo |
 | `Draft failed checks twice` | AI ne copy kiya / nakli quote | kuch nahi, agla run naye sirse try karega |
 | Approve pe error (live site) | Aiven pe migration 002 nahi chali | `migrations/002-ai-assisted.sql` Aiven pe chalao |

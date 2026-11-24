@@ -30,7 +30,7 @@ concurrency:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25 # script khud 15 min me Gemini se haar maan leti hai
     steps:
       - uses: actions/checkout@v4
 

@@ -81,12 +81,29 @@ async function siteRequest(path, options = {}) {
 }
 
 // ---------------------------------------------------------------------
-// Gemini: models ek-ek karke. 503 (busy) -> thoda ruk ke wahi model ek baar aur. 429 (free limit) / 404 -> agla model.
+// Gemini: free tier aksar "high demand" (503) deta hai, aur ye kuch minute me aata-jaata rehta hai.
+// (2026-11-24: teeno models ek saath 503 de rahe the, purana code 1 retry ke baad haar maan leta tha.)
+// Isliye ROUNDS me try karte hain: har round me saare models ek-ek baar, round ke baad badhta hua wait
+// (30s, 1m, 2m, 4m). Kul ~8 minute tak sabr. Workflow ka timeout 20 minute hai.
+//   503 / 500 (busy)        -> agla model, agle round me phir try
+//   429 (free limit khatam) -> ye model is run me dobara nahi
+//   404 (model band)        -> ye model is run me dobara nahi
+//   400 / 401 / 403         -> key ya request galat: turant ruk jao (wait karne se theek nahi hoga)
 // ---------------------------------------------------------------------
+const ROUND_WAITS_MS = [30000, 60000, 120000, 240000];
+// Ek request isse zyada latki rahe to kaat do (2026-11-24 ko ek request 4.5 minute latak ke phir 503 de gayi thi).
+// Ek poori post likhne me normally 30-90 second lagte hain.
+const REQUEST_TIMEOUT_MS = 120000;
+// Poore run me Gemini pe kul itna time (workflow ka timeout 25 min hai, usse pehle saaf error ke saath ruk jao).
+const GEMINI_DEADLINE = Date.now() + 15 * 60 * 1000;
+
 async function generateWithGemini(ai, prompt) {
   const errors = [];
-  for (const model of MODELS) {
-    for (let attempt = 1; attempt <= 2; attempt += 1) {
+  const skip = new Set();
+  for (let round = 0; round <= ROUND_WAITS_MS.length; round += 1) {
+    for (const model of MODELS) {
+      if (skip.has(model)) continue;
+      if (Date.now() > GEMINI_DEADLINE) break;
       try {
         const response = await ai.models.generateContent({
           model,
@@ -96,28 +113,38 @@ async function generateWithGemini(ai, prompt) {
             responseMimeType: "application/json",
             responseJsonSchema: RESPONSE_SCHEMA,
             maxOutputTokens: 8192,
+            abortSignal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
           },
         });
-        const text = response.text || "";
         try {
-          return { model, draft: JSON.parse(text) };
+          return { model, draft: JSON.parse(response.text || "") };
         } catch {
           errors.push(`${model}: response was not valid JSON`);
-          break;
         }
       } catch (error) {
         const status = error.status || 0;
-        errors.push(`${model}: ${status} ${String(error.message).slice(0, 120)}`);
-        if ((status === 503 || status === 500) && attempt === 1) {
-          log(`  ${model} busy (${status}), retrying in 20s`);
-          await sleep(20000);
-          continue;
+        errors.push(`round ${round + 1} ${model}: ${status} ${String(error.message).slice(0, 120)}`);
+        if ([400, 401, 403].includes(status)) {
+          throw new Error(`Gemini rejected the request (${status}). Check GEMINI_API_KEY. ${String(error.message).slice(0, 200)}`);
         }
-        break; // 429 / 404 / dusra error -> agla model
+        if (status === 429 || status === 404) {
+          log(`  ${model}: ${status === 429 ? "free limit reached" : "not available"}, skipping it for this run`);
+          skip.add(model);
+        } else {
+          const timedOut = error.name === "AbortError" || error.name === "TimeoutError";
+          log(`  ${model} busy (${timedOut ? `no answer in ${REQUEST_TIMEOUT_MS / 1000}s` : status || "network"})`);
+        }
       }
     }
+    if (skip.size === MODELS.length) break;
+    if (round < ROUND_WAITS_MS.length && Date.now() + ROUND_WAITS_MS[round] < GEMINI_DEADLINE) {
+      log(`  all models busy, waiting ${ROUND_WAITS_MS[round] / 1000}s before round ${round + 2}`);
+      await sleep(ROUND_WAITS_MS[round]);
+    } else {
+      break;
+    }
   }
-  throw new Error(`All Gemini models failed:\n  ${errors.join("\n  ")}`);
+  throw new Error(`All Gemini models failed:\n  ${errors.slice(-6).join("\n  ")}`);
 }
 
 async function main() {
