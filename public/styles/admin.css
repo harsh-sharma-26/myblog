@@ -1,0 +1,379 @@
+/* =====================================================================
+   [AI DRAFTS] ADMIN: AI POSTS REVIEW PORTAL
+   Pages: views/admin-ai-posts.ejs (list), admin-ai-post-review.ejs (preview), admin-ai-post-edit.ejs (edit)
+   Baaki colors base.css ke variables se. Sirf "approve" wala hara rang naya hai, wo yahin define hai
+   (light aur dark dono ke liye, base.css jaisa hi pattern).
+   ===================================================================== */
+
+:root {
+  --success: #2f7d4f;
+  --success-soft: #e9f5ee;
+  --warning: #9a6700;
+  --warning-soft: #fdf4e1;
+}
+
+:root[data-theme="dark"] {
+  --success: #7fd3a0;
+  --success-soft: #1c3326;
+  --warning: #f0c060;
+  --warning-soft: #352a14;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --success: #7fd3a0;
+    --success-soft: #1c3326;
+    --warning: #f0c060;
+    --warning-soft: #352a14;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   1. LIST PAGE
+   --------------------------------------------------------------------- */
+.admin-page-header {
+  margin-bottom: 1.5rem;
+}
+
+.admin-page-header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.admin-subtitle {
+  margin: 0;
+  color: var(--muted);
+}
+
+.admin-notice {
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: var(--accent-soft);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+/* Pending / Approved / Rejected tabs */
+.status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.status-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.status-tab:hover {
+  color: var(--accent);
+  background-color: var(--accent-soft);
+}
+
+.status-tab.is-active {
+  color: var(--on-accent);
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.status-tab-count {
+  min-width: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.admin-empty {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--muted);
+  background-color: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.admin-empty p {
+  margin: 0;
+}
+
+.draft-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.draft-card {
+  padding: 1.25rem 1.5rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.draft-card h2 {
+  margin: 0.6rem 0 0.4rem;
+  font-size: 1.3rem;
+  overflow-wrap: anywhere;
+}
+
+.draft-card h2 a {
+  color: var(--text);
+}
+
+.draft-card h2 a:hover {
+  color: var(--accent);
+}
+
+.draft-summary {
+  margin: 0 0 1rem;
+  color: var(--muted);
+}
+
+.draft-card-meta,
+.review-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.draft-topic {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.draft-review-info {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.draft-reason {
+  color: var(--text);
+  font-style: italic;
+}
+
+.status-pill {
+  padding: 0.12rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  color: var(--warning);
+  background-color: var(--warning-soft);
+}
+
+.status-approved {
+  color: var(--success);
+  background-color: var(--success-soft);
+}
+
+.status-rejected {
+  color: var(--danger);
+  background-color: var(--danger-soft);
+}
+
+/* ---------------------------------------------------------------------
+   2. REVIEW PAGE
+   --------------------------------------------------------------------- */
+#ai-post-review {
+  max-width: 46rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  font-weight: 500;
+}
+
+.review-status {
+  margin-bottom: 1rem;
+}
+
+.review-preview {
+  margin: 1rem 0 1.5rem;
+}
+
+.preview-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.preview-summary {
+  margin: -0.25rem 0 0.75rem;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.preview-hint {
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.preview-sources {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.preview-sources p {
+  margin: 0 0 0.5rem;
+}
+
+.preview-sources ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.preview-sources li {
+  margin: 0.25rem 0;
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+/* Approve / Edit / Reject ki row. forms.css yahan load nahi hoti, phir bhi `form` ko saaf rakhte hain. */
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.review-actions form {
+  margin: 0;
+}
+
+.btn.btn-approve {
+  background-color: var(--success);
+  color: #fff;
+}
+
+:root[data-theme="dark"] .btn.btn-approve {
+  color: #10151b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .btn.btn-approve {
+    color: #10151b;
+  }
+}
+
+.btn.btn-approve:hover {
+  background-color: var(--success);
+  filter: brightness(1.08);
+}
+
+/* Reject: pehle sirf button, click pe reason box khulta hai (galti se reject na ho) */
+.reject-box {
+  flex-basis: 100%;
+}
+
+.reject-box summary {
+  list-style: none;
+  display: inline-block;
+}
+
+.reject-box summary::-webkit-details-marker {
+  display: none;
+}
+
+.reject-box[open] summary {
+  background-color: var(--danger-soft);
+}
+
+.reject-box form {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.reject-box label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.reject-box textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: var(--bg);
+  resize: vertical;
+}
+
+.reject-box textarea:focus {
+  outline: none;
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px var(--danger-soft);
+}
+
+.btn.btn-reject {
+  justify-self: start;
+  background-color: var(--danger);
+  color: #fff;
+}
+
+.btn.btn-reject:hover {
+  background-color: var(--danger);
+  filter: brightness(1.08);
+}
+
+/* ---------------------------------------------------------------------
+   3. EDIT PAGE (forms.css ke upar chhote badlav)
+   --------------------------------------------------------------------- */
+.sources-input {
+  min-height: 6rem;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .draft-card {
+    padding: 1rem 1.1rem;
+  }
+
+  .review-actions {
+    padding: 1rem;
+  }
+
+  .review-actions .btn,
+  .review-actions form {
+    width: 100%;
+    text-align: center;
+  }
+
+  .reject-box summary {
+    display: block;
+  }
+}

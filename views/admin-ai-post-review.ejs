@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('includes/head', { title: 'Review: ' + draft.title }) %>
+    <link rel="stylesheet" href="/styles/posts.css" />
+    <link rel="stylesheet" href="/styles/admin.css" />
+  </head>
+
+  <body>
+    <%- include('includes/header') %>
+    <%# [AI DRAFTS] Ek draft ka preview, bilkul waise jaise site pe dikhega, plus Approve / Reject / Edit. Route: routes/admin-ai-drafts.js %>
+    <main id="ai-post-review">
+      <a class="back-link" href="/admin/ai-posts?status=<%= draft.status %>">&larr; Back to AI Posts</a>
+
+      <%- include('includes/form-error') %>
+      <% if (locals.notice) { %>
+      <p class="admin-notice" role="status"><%= notice %></p>
+      <% } %>
+
+      <div class="review-status">
+        <span class="status-pill status-<%= draft.status %>"><%= draft.status %></span>
+        <% if (draft.topic) { %><span class="draft-topic"><%= draft.topic %></span><% } %>
+        <span>Generated <%= new Date(draft.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) %></span>
+        <% if (draft.status !== 'pending') { %>
+        <span>
+          · <%= draft.status === 'approved' ? 'Approved' : 'Rejected' %><% if (draft.reviewer_name) { %> by <%= draft.reviewer_name %><% } %>
+          <% if (draft.status === 'approved' && draft.post_id) { %> · <a href="/posts/<%= draft.post_id %>">View published post</a><% } %>
+        </span>
+        <% } %>
+      </div>
+      <% if (draft.status === 'rejected' && draft.reject_reason) { %>
+      <p class="draft-reason">Reason: <%= draft.reject_reason %></p>
+      <% } %>
+
+      <%# Preview: wahi markup/classes jo post-detail.ejs me hain, taaki admin ko asli look dikhe %>
+      <article class="review-preview" aria-label="Post preview">
+        <p class="preview-label">Preview</p>
+        <div id="post-detail">
+          <h1><%= draft.title %></h1>
+          <p class="preview-summary"><%= draft.summary %></p>
+          <section id="post-meta">
+            <address><%= draft.status === 'pending' ? currentUser.name + ' (you, after approval)' : (draft.reviewer_name || '') %></address>
+          </section>
+          <hr />
+          <p id="body"><%= draft.body %></p>
+          <% if (draft.sources) { %>
+          <div class="preview-sources">
+            <p><strong>Sources</strong> <span class="preview-hint">(added to the end of the post on approval)</span></p>
+            <ul>
+              <% for (const source of draft.sources.split('\n')) { %>
+              <li>
+                <% if (/^https?:\/\//i.test(source)) { %>
+                <a href="<%= source %>" target="_blank" rel="noopener noreferrer nofollow"><%= source %></a>
+                <% } else { %>
+                <%= source %>
+                <% } %>
+              </li>
+              <% } %>
+            </ul>
+          </div>
+          <% } %>
+        </div>
+      </article>
+
+      <% if (draft.status === 'pending') { %>
+      <section class="review-actions" aria-label="Review actions">
+        <form class="inline-form" action="/admin/ai-posts/<%= draft.id %>/approve" method="POST"
+          onsubmit="return confirm('Publish this post on the site under your name?');">
+          <%- include('includes/csrf-field') %>
+          <button class="btn btn-approve" type="submit">Approve &amp; publish</button>
+        </form>
+        <a class="btn btn-alt" href="/admin/ai-posts/<%= draft.id %>/edit">Edit</a>
+
+        <details class="reject-box">
+          <summary class="btn btn-danger">Reject…</summary>
+          <form action="/admin/ai-posts/<%= draft.id %>/reject" method="POST"
+            onsubmit="return confirm('Reject this draft? It will never be published.');">
+            <%- include('includes/csrf-field') %>
+            <label for="reason">Reason <span class="preview-hint">(optional, helps improve future drafts)</span></label>
+            <textarea id="reason" name="reason" rows="3" maxlength="500" placeholder="e.g. Too generic, gives medical advice, weak sources…"></textarea>
+            <button class="btn btn-reject" type="submit">Reject draft</button>
+          </form>
+        </details>
+      </section>
+      <% } %>
+    </main>
+  </body>
+</html>

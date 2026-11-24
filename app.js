@@ -7,6 +7,8 @@ const cookieSession = require("cookie-session");
 
 const blogRoutes = require("./routes/blog");
 const authRoutes = require("./routes/auth");
+const aiDraftsApiRoutes = require("./routes/ai-drafts-api"); // [AI DRAFTS]
+const { router: adminAiDraftRoutes, loadAiPendingCount } = require("./routes/admin-ai-drafts"); // [AI DRAFTS]
 const { loadCurrentUser } = require("./middleware/auth");
 const { csrfProtection } = require("./middleware/csrf");
 const { requestLogger } = require("./middleware/request-logger");
@@ -68,6 +70,10 @@ app.get("/health", async function (req, res) {
   }
 });
 
+// [AI DRAFTS] AI pipeline ka API (POST /api/ai-drafts). Session / CSRF se PEHLE, kyunki ise browser nahi, script call
+// karti hai jo secret token (Authorization header) bhejti hai. Ye sirf "pending" draft banata hai, publish kabhi nahi.
+app.use(aiDraftsApiRoutes);
+
 // [AUTH] 1) Session: login ki yaad browser ki cookie me rehti hai (server pe alag session table nahi).
 // Cookie signed hai (keys se), isliye user usme type/id badal nahi sakta; badlega to signature galat hoke cookie reject ho jayegi.
 // Cookie me sirf { auth: { type, id }, csrfToken } hota hai, password ya personal data nahi.
@@ -85,9 +91,12 @@ app.use(
 app.use(loadCurrentUser);
 // [AUTH] 3) Har POST par CSRF token check (middleware/csrf.js)
 app.use(csrfProtection);
+// [AI DRAFTS] Admin ke navbar me "AI Posts (n)" badge ke liye pending count
+app.use(loadAiPendingCount);
 
 app.use(authRoutes);
 app.use(blogRoutes);
+app.use(adminAiDraftRoutes); // [AI DRAFTS] /admin/ai-posts review portal (sirf admin)
 
 // Koi bhi route match nahi hua to 404 page (pehle Express ka default plain-text "Cannot GET" aata tha)
 app.use(function (req, res) {

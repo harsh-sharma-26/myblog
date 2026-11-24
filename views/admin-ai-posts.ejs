@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('includes/head', { title: 'AI Posts' }) %>
+    <link rel="stylesheet" href="/styles/admin.css" />
+  </head>
+
+  <body>
+    <%- include('includes/header') %>
+    <%# [AI DRAFTS] Admin review portal: AI ke banaye drafts. Route: routes/admin-ai-drafts.js %>
+    <main id="ai-posts">
+      <div class="admin-page-header">
+        <h1>AI Posts</h1>
+        <p class="admin-subtitle">AI-generated drafts waiting for review. Nothing appears on the site until you approve it.</p>
+      </div>
+
+      <% if (locals.notice) { %>
+      <p class="admin-notice" role="status"><%= notice %></p>
+      <% } %>
+
+      <nav class="status-tabs" aria-label="Filter drafts by status">
+        <% for (const tab of ['pending', 'approved', 'rejected']) { %>
+        <a href="/admin/ai-posts?status=<%= tab %>" class="status-tab<%= tab === status ? ' is-active' : '' %>"<% if (tab === status) { %> aria-current="page"<% } %>>
+          <%= tab.charAt(0).toUpperCase() + tab.slice(1) %>
+          <span class="status-tab-count"><%= counts[tab] %></span>
+        </a>
+        <% } %>
+      </nav>
+
+      <% if (drafts.length === 0) { %>
+      <div class="admin-empty">
+        <% if (status === 'pending') { %>
+        <p>No drafts waiting for review.</p>
+        <% } else { %>
+        <p>No <%= status %> drafts yet.</p>
+        <% } %>
+      </div>
+      <% } else { %>
+      <ol class="draft-list">
+        <% for (const draft of drafts) { %>
+        <li class="draft-card">
+          <div class="draft-card-meta">
+            <span class="status-pill status-<%= draft.status %>"><%= draft.status %></span>
+            <% if (draft.topic) { %><span class="draft-topic"><%= draft.topic %></span><% } %>
+            <time datetime="<%= new Date(draft.created_at).toISOString() %>">Generated <%= new Date(draft.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) %></time>
+          </div>
+          <h2><a href="/admin/ai-posts/<%= draft.id %>"><%= draft.title %></a></h2>
+          <p class="draft-summary"><%= draft.summary %></p>
+          <% if (draft.status !== 'pending') { %>
+          <p class="draft-review-info">
+            <%= draft.status === 'approved' ? 'Approved' : 'Rejected' %><% if (draft.reviewer_name) { %> by <%= draft.reviewer_name %><% } %><% if (draft.reviewed_at) { %> on <%= new Date(draft.reviewed_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) %><% } %>
+            <% if (draft.status === 'approved' && draft.post_id) { %> · <a href="/posts/<%= draft.post_id %>">View post</a><% } %>
+            <% if (draft.status === 'rejected' && draft.reject_reason) { %><br /><span class="draft-reason">Reason: <%= draft.reject_reason %></span><% } %>
+          </p>
+          <% } %>
+          <a class="btn <%= draft.status === 'pending' ? '' : 'btn-alt' %>" href="/admin/ai-posts/<%= draft.id %>"><%= draft.status === 'pending' ? 'Review' : 'View' %></a>
+        </li>
+        <% } %>
+      </ol>
+      <% } %>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('includes/head', { title: 'Edit AI draft' }) %>
+    <link rel="stylesheet" href="/styles/forms.css" />
+    <link rel="stylesheet" href="/styles/admin.css" />
+  </head>
+
+  <body>
+    <%- include('includes/header') %>
+    <%# [AI DRAFTS] Approve se pehle draft me sudhaar. Sirf pending draft. Save ke baad wapas review page. %>
+    <main>
+      <h1>Edit AI draft</h1>
+      <p class="posting-as">Changes are saved to the draft. It is published only when you approve it.</p>
+      <form action="/admin/ai-posts/<%= draft.id %>/edit" method="POST">
+        <%- include('includes/csrf-field') %>
+        <%- include('includes/form-error') %>
+        <div class="form-control">
+          <label for="title">Title</label>
+          <input type="text" id="title" name="title" value="<%= draft.title %>" required maxlength="255" />
+        </div>
+        <div class="form-control">
+          <label for="summary">Summary</label>
+          <input type="text" id="summary" name="summary" value="<%= draft.summary %>" required maxlength="255" />
+        </div>
+        <div class="form-control">
+          <label for="content">Post Content</label>
+          <textarea id="content" name="content" required rows="16"><%= draft.body %></textarea>
+        </div>
+        <div class="form-control">
+          <label for="sources">Sources</label>
+          <textarea id="sources" name="sources" rows="5" class="sources-input"><%= draft.sources || '' %></textarea>
+          <p class="form-hint">One link or source per line. Added as a "Sources" list at the end of the post when approved.</p>
+        </div>
+        <button class="btn">Save changes</button>
+        <p class="form-alt"><a href="/admin/ai-posts/<%= draft.id %>">Cancel</a></p>
+      </form>
+    </main>
+  </body>
+</html>

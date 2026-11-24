@@ -151,6 +151,30 @@ CREATE TABLE `post_likes` (
   CONSTRAINT `post_likes_post_fk` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE
 );
 
+-- [AI DRAFTS] AI se bani posts ki admin review queue. Poori explanation: migrations/001-ai-drafts.sql
+-- Approve hone tak site pe kuch nahi dikhta. Approve -> `posts` me admin ke naam se nayi row.
+CREATE TABLE `ai_drafts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `summary` varchar(255) NOT NULL,
+  `body` text NOT NULL,
+  `sources` text DEFAULT NULL,
+  `topic` varchar(255) DEFAULT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `reject_reason` varchar(500) DEFAULT NULL,
+  `reviewed_by` int DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `post_id` int DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `ai_drafts_status_created` (`status`, `created_at`),
+  KEY `ai_drafts_reviewed_by` (`reviewed_by`),
+  KEY `ai_drafts_post_id` (`post_id`),
+  CONSTRAINT `ai_drafts_reviewer_fk` FOREIGN KEY (`reviewed_by`) REFERENCES `authors` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `ai_drafts_post_fk` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE SET NULL
+);
+
 
 -- ############################################################
 -- PART 2: EXISTING DATABASE UPGRADE (purana live DB, data bacha ke)
@@ -203,3 +227,6 @@ CREATE TABLE `post_likes` (
 -- STEP 5 (SQL se nahi, code/script se): har author ka password set karo.
 -- Seed script plain password ko bcrypt/argon2 se hash karke authors.password_hash me daalegi.
 -- Jab tak ye nahi hota, authors login nahi kar payenge (password_hash NULL = login band).
+--
+-- STEP 6: [AI DRAFTS] ai_drafts table banao. SQL alag file me hai (usi me undo ka DROP bhi hai):
+--   mysql -u <user> -p <db_name> < migrations/001-ai-drafts.sql

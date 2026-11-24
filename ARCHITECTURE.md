@@ -1,7 +1,7 @@
 # MyBlog — Architecture & Reference Guide
 
 > Future reference ke liye banaya gaya. Project ko dobara samajhna ho to yahin se shuru karo.
-> Last updated: 2026-10-19 (login / signup / admin / permissions add hue, section 12 dekho)
+> Last updated: 2026-11-23 (logging + `/health` endpoint add hue, site ka text English me hua: section 13 aur 14 dekho)
 
 ## 0. Padhne ka order (naye ho to yahin se shuru karo)
 
@@ -24,6 +24,8 @@
    - ⏭️ 12.13 Gotchas (code badalne se pehle zaroor padhna)
 8. ✅ **7. Project kaise chalayein**
 9. ⏭️ **8, 9, 10, 11** (git history, fixes, pending, performance): ye history hai, project samajhne ke liye zaroori nahi
+10. ⭐ **13. Logging & Health check** (server par kuch toote to yahin se shuru karo)
+11. ⏭️ **14. Site ka text English me** (naya text likhte waqt dhyan rakhna)
 
 ## 1. Ye project kya hai?
 
@@ -64,6 +66,7 @@ myBlog/
 ├── schema.sql              ← DB tables ka SQL (PART 1 = fresh DB, PART 2 = purane DB ka upgrade)
 ├── package.json            ← Dependencies + scripts ("npm start", "npm run set-admin-password")
 ├── .env                    ← DB credentials + SESSION_SECRET (gitignored, kabhi commit mat karna)
+├── logs/app.log            ← local par server ke logs (gitignored, apne aap banta hai, section 13) [NAYA]
 ├── data/
 │   └── database.js         ← MySQL connection pool
 ├── routes/
@@ -72,12 +75,14 @@ myBlog/
 ├── middleware/                                                              [NAYA FOLDER]
 │   ├── auth.js             ← "kaun hai?" (loadCurrentUser) + login-required guards
 │   ├── csrf.js             ← CSRF token check (har POST par)
-│   └── rate-limit.js       ← galat password baar-baar daalne par rokta hai
+│   ├── rate-limit.js       ← galat password baar-baar daalne par rokta hai
+│   └── request-logger.js   ← har request ki ek log line (method, URL, status, time) [NAYA]
 ├── utils/                                                                   [NAYA FOLDER]
 │   ├── permissions.js      ← "kaun kya kar sakta hai" ke rules (ek hi jagah)
 │   ├── validation.js       ← saare forms / :id ka server-side input check
 │   ├── password.js         ← bcrypt hash / verify
-│   └── async-handler.js    ← async route ke error ko 500 page pe bhejta hai (pehle blog.js me tha)
+│   ├── async-handler.js    ← async route ke error ko 500 page pe bhejta hai (pehle blog.js me tha)
+│   └── logger.js           ← logger: console me hamesha, file me sirf local par (section 13) [NAYA]
 ├── scripts/
 │   └── set-admin-password.js ← admin ka password terminal se set karne ki script [NAYA]
 ├── views/                  ← EJS templates (HTML pages)
@@ -111,13 +116,16 @@ myBlog/
    1. `express.urlencoded` → HTML form ka data `req.body` me aata hai.
    2. `compression()` → saare responses gzip compress hote hain (performance, section 11).
    3. `express.static("public")` → `/styles/...` aur `/react/...` files seedha serve hoti hain. Ye session se **pehle** hai, taaki CSS/JS ki request pe DB lookup na ho.
-   4. `cookieSession` → login ki cookie padhta/likhta hai (`req.session`).
-   5. `loadCurrentUser` → cookie se asli user DB se nikalta hai (`req.currentUser`).
-   6. `csrfProtection` → har POST pe security token check.
+   4. `requestLogger` → har page/API request ki ek log line. Static ke **baad** hai, isliye CSS/JS ki requests log nahi hoti (section 13).
+   5. `GET /health` → server + database chal rahe hain ya nahi, JSON me batata hai (section 13).
+   6. `cookieSession` → login ki cookie padhta/likhta hai (`req.session`).
+   7. `loadCurrentUser` → cookie se asli user DB se nikalta hai (`req.currentUser`).
+   8. `csrfProtection` → har POST pe security token check.
 5. `authRoutes` aur `blogRoutes` mount karta hai.
 6. **404 handler**: koi route match na ho to `404.ejs` (pehle Express ka plain "Cannot GET" aata tha).
-7. **Error handler** (4 arguments wala) — koi bhi route crash kare to `500.ejs` dikhata hai.
-8. `PORT` (env) ya default `3000` pe listen karta hai. `x-powered-by` header band hai. Proxy ke peeche (Railway/Render etc.) `.env` me `TRUST_PROXY=1` daalo.
+7. **Error handler** (4 arguments wala) — koi bhi route crash kare to `500.ejs` dikhata hai, aur error ka poora stack trace + URL log karta hai.
+8. `PORT` (env) ya default `3000` pe listen karta hai. Start hote hi `Server started` log karta hai aur ek baar database check karta hai. `x-powered-by` header band hai. Proxy ke peeche (Railway/Render etc.) `.env` me `TRUST_PROXY=1` daalo.
+9. `process.on("unhandledRejection" / "uncaughtException")` → request ke bahar hone wale crash bhi process band hone se pehle log ho jate hain.
 
 ### `data/database.js` — DB connection
 - `mysql.createPool(...)` → **connection pool** (har request pe naya connection nahi banta, pool se reuse hota hai — fast aur efficient).
@@ -502,6 +510,7 @@ Faide: double-click, do tabs, retry se count kabhi galat nahi hota (idempotent).
 | `TRUST_PROXY=1` | production me proxy ke peeche ho to | Asli client IP (rate limit) aur HTTPS (secure cookie) sahi pehchanne ke liye |
 | `NODE_ENV=production` | production me | Cookie sirf HTTPS par jati hai |
 | `DB_SSL_CA` | optional | Pehle jaisa (section 9, fix #8) |
+| `LOG_FILE` | optional | Logs ko file me bhi likhna ho to path, jaise `logs/app.log`. Local par default yahi hai, production me default band (section 13) |
 
 ### 12.10 Live DB par chalane ka checklist (ek baar)
 
@@ -531,6 +540,8 @@ Faide: double-click, do tabs, retry se count kabhi galat nahi hota (idempotent).
 | `utils/validation.js` | `validatePost/Signup/Login`, `parseId`, `safeNextPath`, `checkPasswordRules` |
 | `utils/password.js` | `hashPassword`, `verifyPassword`, `DUMMY_HASH` |
 | `utils/async-handler.js` | async route ke error ko `next()` se 500 page tak pahunchata hai |
+| `utils/logger.js` | `logger.info/warn/error`: console + (local par) `logs/app.log` (section 13) |
+| `middleware/request-logger.js` | har request ki log line, 5xx = ERROR, 4xx = WARN (section 13) |
 | `scripts/set-admin-password.js` | admin ka password set karne ki CLI |
 | `views/login.ejs`, `signup.ejs`, `admin-login.ejs`, `403.ejs` | naye pages |
 | `views/includes/like-widget.ejs`, `csrf-field.ejs`, `form-error.ejs` | naye reusable tukde |
@@ -570,3 +581,81 @@ Local MySQL par fresh schema banake app chalayi aur 109 automated checks (curl, 
 - **User delete / profile edit / password change page nahi hai.**
 - **Security headers (CSP, helmet) nahi lagaye**: site CDN scripts (unpkg React/Babel) aur inline `onsubmit` use karti hai, strict CSP unhe tod deti. Babel hatane ke baad (section 11) CSP lagana asaan hoga.
 - `npm audit` me **express/body-parser** ki purani warnings pehle se thi (is kaam se pehle ki). `npm audit fix` alag se karna chahiye, maine nahi chhua.
+
+## 13. Logging & Health check (2026-11-23)
+
+Senior ki salah thi: server par kuch toote to logs se turant pata chale ki **kya, kab, kis page par aur kyun** toota. Pehle error handler sirf `console.log(error)` karta tha: na URL pata chalta tha, na time, na ye ki server sahi start hua ya nahi.
+
+### 13.1 Logs kahan jate hain
+
+| Jagah | Kab | Kaise dekhein |
+|---|---|---|
+| **Console** (stdout/stderr) | **hamesha**, local aur Render dono par | Local: terminal. Render: Dashboard → service → **Logs** tab |
+| **`logs/app.log` file** | sirf local par (default), ya jab `LOG_FILE` set ho | file kholo. `logs/` gitignored hai |
+
+**Render par file kyu nahi?** Render ki disk har deploy / restart par saaf ho jati hai. File wale logs theek tab gayab ho jate jab unki sabse zyada zarurat hoti (crash ke baad). Render console ka output khud apne Logs tab me sambhal ke rakhta hai, isliye production ke liye console hi sahi jagah hai.
+
+### 13.2 Kya-kya log hota hai
+
+Har line ka format: `<time> <LEVEL> <message> {extra JSON}`
+
+```
+2026-11-23T14:44:52.839Z INFO  Server started {"port":3000,"env":"production"}
+2026-11-23T14:44:52.852Z INFO  Database connection OK
+2026-11-23T14:44:55.300Z INFO  GET /posts 200 42ms {"ip":"1.2.3.4","user":"user#3"}
+2026-11-23T14:44:55.421Z WARN  GET /does-not-exist 404 2ms {"ip":"1.2.3.4","user":"guest"}
+2026-11-23T14:44:55.397Z ERROR Request failed {"method":"GET","url":"/posts","error":{"code":"ECONNREFUSED","stack":"... routes/blog.js:93 ..."}}
+2026-11-23T14:44:55.406Z ERROR GET /posts 500 12ms {"ip":"1.2.3.4","user":"guest"}
+```
+
+| Kya | Kahan se | Level |
+|---|---|---|
+| Server start (port, env) | `app.js` (`app.listen`) | INFO |
+| Startup par database check (`SELECT 1`) | `app.js` | INFO / ERROR |
+| Har page / API request (method, URL, status, ms, ip, user) | `middleware/request-logger.js` | 2xx/3xx = INFO, 4xx = WARN, 5xx = ERROR |
+| Route crash (URL + poora stack trace) | `app.js` error handler | ERROR |
+| `/health` fail | `app.js` | ERROR |
+| Request ke bahar crash (`unhandledRejection`, `uncaughtException`) | `app.js` | ERROR |
+| `SESSION_SECRET` missing | `app.js` | ERROR |
+
+**Kya log NAHI hota (jaanboojh ke):** password, cookie, CSRF token, form ka data (request body), aur static files (CSS/JS/images, bahut shor hota).
+
+### 13.3 `/health` endpoint
+
+`https://<aapki-site>/health` kholo:
+- `{"status":"ok","database":"ok","uptimeSeconds":123}` → server + DB dono theek.
+- `{"status":"error","database":"unreachable"}` (status 503) → server chal raha hai par DB se connection nahi.
+
+Session / CSRF se **pehle** mount hai, kyunki use inki zarurat nahi. Render Settings me **Health Check Path = `/health`** daal do to Render khud monitor karega.
+
+### 13.4 Kuch toote to kya karein (debugging checklist)
+
+1. Render → Logs tab kholo. `ERROR` search karo.
+2. `Request failed` wali line me `url` (kaunsa page) aur `stack` (code ki kaunsi file + line) dekho.
+3. `Database connection FAILED` ya `ECONNREFUSED` / `ER_ACCESS_DENIED_ERROR` → code nahi, DB settings (`.env` / Render environment) check karo.
+4. `Server started` line hi nahi aayi → app start hote hi crash hua, uske upar ki lines padho (jaise `SESSION_SECRET` missing).
+5. Shak ho ki site chal rahi hai ya nahi → `/health` kholo.
+
+### 13.5 Aage ke options (abhi nahi kiye)
+- Naye code me `console.log` ki jagah `const logger = require("../utils/logger")` aur `logger.info/warn/error` use karo, taaki sab logs ek format me rahein. (`data/database.js` ki SSL warning aur `scripts/set-admin-password.js` abhi bhi `console` use karte hain.)
+- Render ke free plan par logs kuch hi din tak rehte hain. Lambe time ke liye log service (Better Stack, Papertrail etc.) jodi ja sakti hai.
+- Bahut traffic ho to request logs zyada ho jayenge; tab `pino` jaisi library + log level setting lagana behtar.
+
+## 14. Site ka text English me (2026-11-23)
+
+Users ko dikhne wala saara text pehle kuch jagah Hinglish me tha (jaise "Naye ho? Account banao", "Email ya password galat hai."), jo professional nahi lagta. Ab sab English me hai. Sirf text badla, logic nahi.
+
+| Kahan | Kya badla (example) |
+|---|---|
+| `views/login.ejs`, `signup.ejs`, `admin-login.ejs` | "New here? Create an account", "Already have an account? Log in", "At least 8 characters." |
+| `views/post-detail.ejs`, `views/includes/post-item.ejs` | delete popup: "Are you sure you want to delete this post?" |
+| `views/403.ejs` | "You do not have permission to perform this action." |
+| `utils/validation.js` | form errors: "Invalid email or password.", "Passwords do not match.", "Title cannot exceed 255 characters." |
+| `routes/auth.js` | "Too many failed attempts. Please try again in 15 minutes.", "An account with this email already exists. Please log in." |
+| `middleware/auth.js`, `middleware/csrf.js` | like / security token ke errors: "Please log in.", "Admin accounts cannot like posts." |
+
+**Dhyan rakhna:** code ke comments aur yeh `ARCHITECTURE.md` abhi bhi Hinglish me hain (ye users ko nahi dikhte). Naya text jo **site par dikhe** (page, error message, popup) wo English me hi likhna.
+
+### 14.1 Pending: Render deploy aur `npm start`
+- `package.json` me `"start": "nodemon app.js"` hai. `nodemon` devDependency hai; agar Render par `NODE_ENV=production` set ho to wo install nahi hota aur deploy fail ho jata hai (Render purana version hi chalata rehta hai). Production ke liye `"start": "node app.js"` aur `"dev": "nodemon app.js"` behtar hai. **Abhi badla nahi.**
+- GitHub par push karne ke baad bhi site na badle to Render → Events/Deploys me deploy status, Auto-Deploy setting aur branch (`main`) check karo.

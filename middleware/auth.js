@@ -8,10 +8,11 @@
 //     'admin' -> authors table (admin)
 // Isi `type` se role decide hota hai. Alag `roles` table nahi hai.
 //
-// Is file me 4 middleware hain:
+// Is file me 5 middleware hain:
 //   loadCurrentUser   : HAR request pe chalta hai, cookie se asli insaan DB se nikalta hai
 //   requireLogin      : login ke bina aage nahi jaane deta
 //   requireNormalUser : sirf normal user (like/unlike ke liye; admin like nahi karta)
+//   requireAdmin      : sirf admin ([AI DRAFTS] review portal ke liye)
 //   redirectIfLoggedIn: login/signup page par pehle se logged-in insaan ko wapas bhejta hai
 // =====================================================================
 
@@ -94,6 +95,19 @@ function requireNormalUser(req, res, next) {
 }
 
 // ---------------------------------------------------------------------
+// [AI DRAFTS] requireAdmin : sirf 'admin' type (authors table). (requireLogin ke BAAD lagana hai.)
+// AI drafts ka review portal (/admin/ai-posts) isi se band hai: normal user ko 403 milta hai.
+// ---------------------------------------------------------------------
+function requireAdmin(req, res, next) {
+  if (req.currentUser && req.currentUser.type === "admin") return next();
+
+  if (wantsJson(req)) {
+    return res.status(403).json({ error: "Admins only." });
+  }
+  res.status(403).render("403");
+}
+
+// ---------------------------------------------------------------------
 // 4) redirectIfLoggedIn : login / signup page pe pehle se logged-in insaan ka kaam nahi
 // ---------------------------------------------------------------------
 function redirectIfLoggedIn(req, res, next) {
@@ -101,4 +115,4 @@ function redirectIfLoggedIn(req, res, next) {
   next();
 }
 
-module.exports = { loadCurrentUser, requireLogin, requireNormalUser, redirectIfLoggedIn };
+module.exports = { loadCurrentUser, requireLogin, requireNormalUser, requireAdmin, redirectIfLoggedIn };

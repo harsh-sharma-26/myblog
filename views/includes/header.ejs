@@ -22,6 +22,12 @@
       <li>
         <a href="/new-post">Create Post</a>
       </li>
+      <%# [AI DRAFTS] Sirf admin ko: AI posts review portal ka link. Badge me pending drafts ki ginti (app.js -> loadAiPendingCount) %>
+      <% if (currentUser.type === 'admin') { %>
+      <li>
+        <a href="/admin/ai-posts">AI Posts<% if (locals.aiPendingCount) { %> <span class="nav-count" aria-label="<%= aiPendingCount %> pending"><%= aiPendingCount %></span><% } %></a>
+      </li>
+      <% } %>
       <li class="nav-user">
         <span class="nav-user-name"><%= currentUser.name %></span>
         <% if (currentUser.type === 'admin') { %><span class="role-badge">Admin</span><% } %>
