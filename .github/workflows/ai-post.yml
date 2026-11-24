@@ -14,7 +14,9 @@ name: AI post generator
 
 on:
   schedule:
-    - cron: "0 0,12 * * *" # 00:00 aur 12:00 UTC = 5:30 AM aur 5:30 PM IST
+    # :17 jaan-boojh ke: ghante ki shuruaat (:00) pe GitHub pe sabse zyada bheed hoti hai, wahan runs late hote
+    # hain ya chhoot jaate hain (2026-11-24 ka 12:00 UTC run chhoot gaya tha).
+    - cron: "17 0,12 * * *" # 00:17 aur 12:17 UTC = 5:47 AM aur 5:47 PM IST
   workflow_dispatch:
 
 permissions:
