@@ -18,6 +18,10 @@
           <%= post.author_name %>
           <% } %>
         </address>
+        <%# [AI GENERATOR] AI draft se approve hui post. Reviewer = post ka author (jis admin ne approve kiya, post usi ke naam se bani). %>
+        <% if (post.ai_assisted) { %>
+        <p class="ai-assisted-label">AI-assisted · Reviewed by <%= post.author_name %></p>
+        <% } %>
       </section>
       <hr />
       <section>

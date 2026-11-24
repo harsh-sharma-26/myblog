@@ -5,12 +5,14 @@
   "main": "app.js",
   "scripts": {
     "start": "nodemon app.js",
-    "set-admin-password": "node scripts/set-admin-password.js"
+    "set-admin-password": "node scripts/set-admin-password.js",
+    "generate-post": "node scripts/ai-generator/generate-post.js"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@google/genai": "^3.6.1",
     "bcryptjs": "^3.0.3",
     "compression": "^1.8.2",
     "cookie-session": "^2.1.1",

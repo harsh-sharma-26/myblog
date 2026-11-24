@@ -124,6 +124,8 @@ CREATE TABLE `posts` (
   `user_id` int DEFAULT NULL,
   -- NOTE: likes NULL ho sakta hai, upar ke comment me poori detail hai.
   `likes` int DEFAULT '0',
+  -- [AI GENERATOR] 1 = AI draft se approve hui post ("AI-assisted" label). Poori baat: migrations/002-ai-assisted.sql
+  `ai_assisted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `author_id` (`author_id`),
   KEY `user_id` (`user_id`),
@@ -230,3 +232,6 @@ CREATE TABLE `ai_drafts` (
 --
 -- STEP 6: [AI DRAFTS] ai_drafts table banao. SQL alag file me hai (usi me undo ka DROP bhi hai):
 --   mysql -u <user> -p <db_name> < migrations/001-ai-drafts.sql
+--
+-- STEP 7: [AI GENERATOR] posts.ai_assisted column ("AI-assisted" label). Code deploy se PEHLE chalao:
+--   mysql -u <user> -p <db_name> < migrations/002-ai-assisted.sql

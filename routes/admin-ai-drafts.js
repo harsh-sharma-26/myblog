@@ -172,7 +172,8 @@ router.post(
 
       // Normal admin post jaisa hi: author_id = approve karne wala admin, user_id NULL (posts_one_owner_chk)
       const [insert] = await connection.query(
-        "INSERT INTO posts (title, summary, body, author_id) VALUES (?, ?, ?, ?)",
+        // ai_assisted = 1: post page pe "AI-assisted · Reviewed by <admin>" label (migrations/002-ai-assisted.sql)
+        "INSERT INTO posts (title, summary, body, author_id, ai_assisted) VALUES (?, ?, ?, ?, 1)",
         [draft.title, draft.summary, body, req.currentUser.id],
       );
       postId = insert.insertId;

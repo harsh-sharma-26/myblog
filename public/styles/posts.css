@@ -207,6 +207,13 @@
   background-color: var(--accent-soft);
 }
 
+/* [AI GENERATOR] "AI-assisted · Reviewed by <naam>" line, author chip ke neeche halka sa */
+.ai-assisted-label {
+  margin: 0.6rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 /* Default `<hr>` ki jagah simple patli line */
 #post-detail hr {
   height: 1px;

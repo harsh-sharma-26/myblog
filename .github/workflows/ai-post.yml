@@ -1,0 +1,48 @@
+# [AI GENERATOR] Har 12 ghante ek AI draft banake site ki review queue (/admin/ai-posts) me bhejta hai.
+# Draft kabhi khud publish nahi hota: admin Approve karega tabhi site pe aayega.
+#
+# Secrets (GitHub repo -> Settings -> Secrets and variables -> Actions):
+#   GEMINI_API_KEY       aistudio.google.com ki free key
+#   AI_DRAFTS_API_TOKEN  wahi token jo Render ke env me hai
+#   SITE_URL             live site, jaise https://myblog.onrender.com
+#
+# Haath se chalana: repo -> Actions -> "AI post generator" -> Run workflow.
+# Note: GitHub cron sirf default branch (main) se chalta hai, aur public repo me 60 din tak koi commit
+# na ho to scheduled workflows apne aap band ho jaate hain (Actions tab me "Enable" dabana padta hai).
+
+name: AI post generator
+
+on:
+  schedule:
+    - cron: "0 0,12 * * *" # 00:00 aur 12:00 UTC = 5:30 AM aur 5:30 PM IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Do run ek saath na chalein (manual + scheduled takra jayein to)
+concurrency:
+  group: ai-post-generator
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --omit=dev
+
+      - name: Generate draft
+        run: npm run generate-post
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          AI_DRAFTS_API_TOKEN: ${{ secrets.AI_DRAFTS_API_TOKEN }}
+          SITE_URL: ${{ secrets.SITE_URL }}

@@ -6,6 +6,8 @@
 //   Body   : JSON { title, summary, body, sources?: [..] ya "line\nline", topic? }
 //   Result : 201 { id, status: "pending" }   -> admin /admin/ai-posts pe dekhega
 //
+//   GET /api/ai-drafts/context  ([AI GENERATOR]) : queue status + pichle drafts ke topics/sources/reject reasons
+//
 // Ye endpoint kabhi seedha post PUBLISH nahi karta. Sirf ai_drafts me "pending" draft banata hai.
 // Publish sirf admin ke Approve button se hota hai.
 //
@@ -81,6 +83,38 @@ router.post(
     );
     logger.info("AI draft received", { draftId: result.insertId, topic: values.topic });
     res.status(201).json({ id: result.insertId, status: "pending" });
+  }),
+);
+
+// ---------------------------------------------------------------------
+// [AI GENERATOR] GET /api/ai-drafts/context
+// Generator script AI ko call karne se PEHLE ye poochti hai, taaki:
+//   - queue full ho to AI call hi na ho (free quota / kharcha bekaar na jaye)   -> canAccept
+//   - wahi topic baar-baar na aaye, aur wahi article dobara source na bane      -> recent[].topic, recent[].sources
+//   - admin ke reject reasons se agla draft behtar bane                        -> recent[].rejectReason
+// Sirf drafts ka metadata deta hai, kisi user ka data nahi. Same token se protected.
+// ---------------------------------------------------------------------
+router.get(
+  "/api/ai-drafts/context",
+  requireApiToken,
+  asyncHandler(async (req, res) => {
+    const [countRows] = await db.query("SELECT COUNT(*) AS total FROM ai_drafts WHERE status = 'pending'");
+    const pending = countRows[0].total;
+
+    const [rows] = await db.query(
+      `SELECT topic, title, status, reject_reason, sources, created_at
+       FROM ai_drafts ORDER BY created_at DESC, id DESC LIMIT 40`,
+    );
+    const recent = rows.map((row) => ({
+      topic: row.topic,
+      title: row.title,
+      status: row.status,
+      rejectReason: row.reject_reason,
+      sources: row.sources ? row.sources.split("\n") : [],
+      createdAt: row.created_at,
+    }));
+
+    res.json({ pending, maxPending: MAX_PENDING, canAccept: pending < MAX_PENDING, recent });
   }),
 );
 

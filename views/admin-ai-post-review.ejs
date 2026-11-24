@@ -40,6 +40,7 @@
           <p class="preview-summary"><%= draft.summary %></p>
           <section id="post-meta">
             <address><%= draft.status === 'pending' ? currentUser.name + ' (you, after approval)' : (draft.reviewer_name || '') %></address>
+            <p class="ai-assisted-label">AI-assisted · Reviewed by <%= draft.status === 'pending' ? currentUser.name : (draft.reviewer_name || '') %></p>
           </section>
           <hr />
           <p id="body"><%= draft.body %></p>
@@ -47,10 +48,13 @@
           <div class="preview-sources">
             <p><strong>Sources</strong> <span class="preview-hint">(added to the end of the post on approval)</span></p>
             <ul>
+              <%# Line "Title (Author, Site): https://..." ho sakti hai, ya sirf link. Sirf http(s) link clickable banta hai (javascript: jaisa kabhi nahi). %>
               <% for (const source of draft.sources.split('\n')) { %>
+              <% const urlMatch = source.match(/https?:\/\/\S+$/i); %>
               <li>
-                <% if (/^https?:\/\//i.test(source)) { %>
-                <a href="<%= source %>" target="_blank" rel="noopener noreferrer nofollow"><%= source %></a>
+                <% if (urlMatch) { %>
+                <%= source.slice(0, urlMatch.index).replace(/[:\s]+$/, '') %><% if (urlMatch.index > 0) { %>: <% } %>
+                <a href="<%= urlMatch[0] %>" target="_blank" rel="noopener noreferrer nofollow"><%= urlMatch[0] %></a>
                 <% } else { %>
                 <%= source %>
                 <% } %>
