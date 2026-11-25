@@ -815,7 +815,7 @@ Jawab ke codes:
 
 ### 16.1 Seedhi baat
 
-Ek chhota **robot (script)** hai jo din me 2 baar (subah 5:47 aur shaam 5:47, IST) apne aap uthta hai aur:
+Ek chhota **robot (script)** hai jo har 2 ghante apne aap uthta hai, aur agar pichla draft 11 ghante se purana hai (yaani din me ~2 baar) to:
 1. Tumhari site se poochta hai: "Queue me jagah hai?"
 2. Ek topic chunta hai (jaise *overthinking*).
 3. Internet se **asli logon ke likhe articles** padhta hai (jaise Tiny Buddha pe logon ki apni kahaniyan).
@@ -926,12 +926,18 @@ Fail hua to AI ko galti batakar **ek baar dobara** likhwate hain. Doosri baar bh
 GitHub Actions = GitHub ka free computer jo tumhare bataye time pe tumhara code chala deta hai.
 
 ```yaml
-cron: "17 0,12 * * *"
+cron: "17 */2 * * *"
 ```
-Is line ka matlab: **har din, 00:17 aur 12:17 baje (UTC)**. India UTC se 5:30 ghante aage hai, to **5:47 AM aur 5:47 PM IST**.
-(Cron ke 5 hisse: minute, ghanta, din, mahina, hafte ka din. `17 0,12 * * *` = minute 17, ghanta 0 aur 12, har din, har mahina, har weekday.)
+Is line ka matlab: **har 2 ghante, minute 17 pe (UTC)**: 00:17, 02:17, 04:17 ... India me 5:47 AM, 7:47 AM, 9:47 AM ...
+(Cron ke 5 hisse: minute, ghanta, din, mahina, hafte ka din. `*/2` = "har doosra ghanta".)
 
-**Minute 17 kyun, 0 kyun nahi?** Ghante ki shuruaat (`:00`) pe duniya bhar ke scheduled jobs ek saath chalte hain, GitHub pe sabse zyada bheed hoti hai, aur runs late hote hain ya **chhoot jaate hain**. Pehle `0 0,12` tha, aur 2026-11-24 ka 5:30 PM wala run chala hi nahi. Isliye ek "ajeeb" minute rakha.
+**Har 2 ghante kyun, jab post 12 ghante me ek chahiye?** GitHub scheduled runs ki guarantee nahi deta. Pehle `17 0,12` (din me sirf 2 baar) tha, aur 2026-11-24 shaam aur 2026-11-25 subah, **dono runs chale hi nahi**. Ek run chhoota = 12 ghante tak kuch nahi. Ab robot baar-baar uthta hai, aur script pehle site se poochti hai "aakhri draft kab bana tha?":
+- 11 ghante se kam hua → *"Skipping this run"* likh ke ruk jaati hai. **Gemini ko call hi nahi hota**, to free limit kharch nahi hoti.
+- 11 ghante ya zyada → draft banati hai.
+
+Example: subah 5:47 pe draft bana. 7:47, 9:47 ... 3:47 PM wale runs skip. 5:47 PM wala chalega. Agar 5:47 PM wala GitHub ne chhod diya ya Gemini busy tha, to 7:47 PM pe phir try. Ye 11 ghante `MIN_GAP_HOURS` env se aata hai (workflow file me). **Run workflow** (haath se) me ye 0 hota hai, to wo hamesha draft banata hai.
+
+**Minute 17 kyun, 0 kyun nahi?** Ghante ki shuruaat (`:00`) pe duniya bhar ke scheduled jobs ek saath chalte hain, GitHub pe sabse zyada bheed hoti hai, aur runs late hote hain ya **chhoot jaate hain**. Pehle `0 0,12` tha, aur 2026-11-24 ka 5:30 PM wala run chala hi nahi. Isliye ek "ajeeb" minute rakha (aur upar wala har-2-ghante wala jugaad bhi).
 
 Har run me: code checkout → Node 22 → `npm ci` → `npm run generate-post` (secrets env me milte hain).
 
@@ -939,7 +945,7 @@ Har run me: code checkout → Node 22 → `npm ci` → `npm run generate-post` (
 
 **Dhyan rakhna:**
 - Schedule sirf `main` branch ki file se chalta hai.
-- GitHub ke schedule kabhi-kabhi 10-60 minute late chalte hain, aur bheed me koi run **chhoot bhi sakta hai** (GitHub ki docs khud ye kehti hain). Ek run chhoote to agla 12 ghante baad aayega. Turant draft chahiye to **Run workflow** button se haath se chala do.
+- GitHub ke schedule kabhi-kabhi 10-60 minute late chalte hain, aur bheed me koi run **chhoot bhi sakta hai** (GitHub ki docs khud ye kehti hain). Ek run chhoote to 2 ghante baad agla try hota hai. Turant draft chahiye to **Run workflow** button se haath se chala do.
 - **60 din ka rule:** public repo me 60 din tak koi commit na ho to GitHub scheduled workflows band kar deta hai. Actions tab me **Enable** dabana padega.
 - **Public repo ke logs sab dekh sakte hain**, isliye script logs me sirf topic, draft id aur counts likhti hai, post ka content nahi. Secrets kabhi logs me nahi dikhte.
 - Do run ek saath nahi chalte (`concurrency`).
@@ -973,7 +979,7 @@ GitHub → Actions → laal (failed) run kholo → "Generate draft" step ka log 
 
 | Log me dikhe | Matlab | Kya karo |
 |---|---|---|
-| **Run hi nahi dikh raha** (Actions tab me us time ka "schedule" run nahi) | GitHub ne bheed me run late kiya ya chhod diya. Setup ki galti nahi | 1 ghanta ruko. Phir bhi nahi to **Run workflow** se haath se chalao. Har baar chhoote to workflow "active" hai ya nahi dekho (60 din wala rule) |
+| **Run hi nahi dikh raha** (Actions tab me us time ka "schedule" run nahi) | GitHub ne bheed me run late kiya ya chhod diya. Setup ki galti nahi | Agla run 2 ghante me khud try karega. Kai ghante tak ek bhi "schedule" run na dikhe to Actions → AI post generator → "..." → **Disable workflow**, phir **Enable workflow** (schedule dobara register ho jata hai), aur **Run workflow** se haath se chalao. Har baar chhoote to workflow "active" hai ya nahi dekho (60 din wala rule) |
 | `Queue is full … Skipping` | 10 drafts pending hain (ye error nahi, run green hi rehta hai) | portal pe drafts review karo |
 | `Context request failed (401)` | GitHub ka token aur Render ka token alag hai | dono jagah same token daalo |
 | `Context request failed (503)` | Render pe `AI_DRAFTS_API_TOKEN` set nahi | Render env me daalo, redeploy |

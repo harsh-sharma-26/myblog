@@ -14,9 +14,11 @@ name: AI post generator
 
 on:
   schedule:
-    # :17 jaan-boojh ke: ghante ki shuruaat (:00) pe GitHub pe sabse zyada bheed hoti hai, wahan runs late hote
-    # hain ya chhoot jaate hain (2026-11-24 ka 12:00 UTC run chhoot gaya tha).
-    - cron: "17 0,12 * * *" # 00:17 aur 12:17 UTC = 5:47 AM aur 5:47 PM IST
+    # Har 2 ghante (:17 pe, kyunki :00 pe GitHub pe sabse zyada bheed hoti hai). GitHub scheduled runs ki
+    # guarantee nahi deta: 2026-11-24/25 ko 12:17 aur 00:17 dono runs chale hi nahi. Isliye baar-baar try karte
+    # hain, aur script khud dekhti hai: pichla draft 11 ghante se naya hai to bina AI call ke ruk jaati hai.
+    # Natija: ~12 ghante me ek post, aur ek run chhoote ya Gemini busy ho to 2 ghante baad agla try.
+    - cron: "17 */2 * * *"
   workflow_dispatch:
 
 permissions:
@@ -48,3 +50,5 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           AI_DRAFTS_API_TOKEN: ${{ secrets.AI_DRAFTS_API_TOKEN }}
           SITE_URL: ${{ secrets.SITE_URL }}
+          # Scheduled run: 11 ghante ka gap zaroori. Manual "Run workflow": 0, yaani hamesha chalega.
+          MIN_GAP_HOURS: ${{ github.event_name == 'schedule' && '11' || '0' }}

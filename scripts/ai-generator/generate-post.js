@@ -162,6 +162,16 @@ async function main() {
     log("Queue is full. Review pending drafts on /admin/ai-posts. Skipping this run (no AI call made).");
     return;
   }
+  // Cron har 2 ghante chalta hai (GitHub kabhi-kabhi scheduled runs chhod deta hai), lekin post 12 ghante me
+  // ek hi chahiye: pichla draft MIN_GAP_HOURS se naya hai to yahin ruk jao, Gemini ko call kiye bina.
+  // Manual "Run workflow" me workflow MIN_GAP_HOURS=0 bhejta hai, to wo hamesha chalta hai.
+  const minGapHours = Number(process.env.MIN_GAP_HOURS || 0);
+  const lastCreated = recent.length ? new Date(recent[0].createdAt).getTime() : 0;
+  const hoursSinceLast = (Date.now() - lastCreated) / 3600000;
+  if (minGapHours > 0 && hoursSinceLast < minGapHours && !DRY_RUN) {
+    log(`Last draft was ${hoursSinceLast.toFixed(1)}h ago (< ${minGapHours}h). Skipping this run (no AI call made).`);
+    return;
+  }
 
   // 2) Topic
   const topic = pickTopic(recent);
