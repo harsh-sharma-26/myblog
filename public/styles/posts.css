@@ -132,6 +132,35 @@
   border-top: 1px solid var(--border);
 }
 
+/* [CLICKABLE CARD] "Stretched link": Read Post link ka ek invisible layer (::after) poore card ko dhak leta hai.
+   Card pe kahin bhi click = asli <a> pe click. Isliye Ctrl/Cmd+click se naye tab me kholna bhi chalta hai, aur
+   keyboard (Tab) pe ek hi link milta hai. Absolute layer .post-item (position: relative) ke hisaab se phailta hai. */
+.post-read-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Like, Edit, Delete us layer ke UPAR (z-index 2), warna unpe click bhi post khol deta */
+.post-item .like-widget,
+.post-actions-secondary {
+  position: relative;
+  z-index: 2;
+}
+
+/* .btn:hover me transform hai. Transform wala element apne ::after ka naya "dabba" ban jata hai, to layer
+   sikud ke sirf button jitna reh jata (hover pe card flicker karta). Isliye card ke andar button ko hover pe
+   uthne nahi dete; card hover hone pe button ka rang badal ke dikhate hain ki click hoga. */
+.post-item .post-read-link:hover,
+.post-item .post-read-link:active {
+  transform: none;
+  box-shadow: none;
+}
+.post-item:hover .post-read-link {
+  background-color: var(--accent-2);
+}
+
 .post-actions-secondary {
   display: flex;
   align-items: center;

@@ -7,7 +7,9 @@
   <h2><%= post.title %></h2>
   <p class="post-item-summary"><%= post.summary %></p>
   <div class="post-actions">
-    <a class="btn" href="/posts/<%= post.id %>">Read Post</a>
+    <%# [CLICKABLE CARD] Is link ka ::after (posts.css) poore card pe phail jata hai, to card pe kahin bhi click = post khulti hai.
+        Like / Edit / Delete CSS me iske upar rakhe hain, isliye wo pehle jaise kaam karte hain. %>
+    <a class="btn post-read-link" href="/posts/<%= post.id %>">Read Post</a>
     <%- include('like-widget', { post: post }) %>
     <%# [AUTH] Edit/Delete sirf unhe dikhte hain jinhe permission hai (admin: sab posts, user: sirf apni). Ye sirf UI hai, asli check server pe hota hai (routes/blog.js), URL seedha kholne par bhi 403 milega. %>
     <% if (locals.canModify && canModify(post)) { %>
