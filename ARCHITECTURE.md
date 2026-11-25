@@ -943,6 +943,11 @@ Har run me: code checkout → Node 22 → `npm ci` → `npm run generate-post` (
 
 **Haath se chalana:** GitHub repo → **Actions** → **AI post generator** → **Run workflow**.
 
+**Backup alarm: cron-job.org (free).** 2026-11-25 tak GitHub ne is repo pe **ek bhi** scheduled run nahi chalaya (koi error bhi nahi, bas chala hi nahi). Isliye ek bahar ki free website, cron-job.org, har 2 ghante GitHub ko API se bolti hai: *"ye workflow chalao, `min_gap_hours=11` ke saath"*. Ye bilkul waisa hi hai jaise tum Run workflow dabate ho, bas robot daba raha hai.
+- Iske liye GitHub ka ek **token (fine-grained PAT)** banta hai, jisko sirf is repo ka *Actions: Read and write* allowed hai. Ye token sirf cron-job.org me rakha hai, code me nahi.
+- GitHub ka schedule aur cron-job.org dono chal gaye to bhi do draft nahi bante: `concurrency` ki wajah se doosra run pehle ke khatam hone ka wait karta hai, phir dekhta hai ki naya draft hai, aur skip kar deta hai.
+- Token ki expiry date hoti hai. Expire hone pe cron-job.org me "401" error dikhega. Tab naya token banake wahan daal dena.
+
 **Dhyan rakhna:**
 - Schedule sirf `main` branch ki file se chalta hai.
 - GitHub ke schedule kabhi-kabhi 10-60 minute late chalte hain, aur bheed me koi run **chhoot bhi sakta hai** (GitHub ki docs khud ye kehti hain). Ek run chhoote to 2 ghante baad agla try hota hai. Turant draft chahiye to **Run workflow** button se haath se chala do.

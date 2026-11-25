@@ -19,7 +19,15 @@ on:
     # hain, aur script khud dekhti hai: pichla draft 11 ghante se naya hai to bina AI call ke ruk jaati hai.
     # Natija: ~12 ghante me ek post, aur ek run chhoote ya Gemini busy ho to 2 ghante baad agla try.
     - cron: "17 */2 * * *"
+  # Haath se (Actions tab) ya bahar se API call (cron-job.org) dono isi se chalte hain.
+  # GitHub ka apna schedule is repo pe chal hi nahi raha (2026-11-25 tak ek bhi scheduled run nahi),
+  # isliye cron-job.org har 2 ghante API se ye workflow chalata hai, min_gap_hours=11 bhej ke.
   workflow_dispatch:
+    inputs:
+      min_gap_hours:
+        description: "Pichla draft itne ghante se naya ho to skip (0 = hamesha banao)"
+        required: false
+        default: "0"
 
 permissions:
   contents: read
@@ -50,5 +58,5 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           AI_DRAFTS_API_TOKEN: ${{ secrets.AI_DRAFTS_API_TOKEN }}
           SITE_URL: ${{ secrets.SITE_URL }}
-          # Scheduled run: 11 ghante ka gap zaroori. Manual "Run workflow": 0, yaani hamesha chalega.
-          MIN_GAP_HOURS: ${{ github.event_name == 'schedule' && '11' || '0' }}
+          # Scheduled run: 11. cron-job.org: 11 (input se). Haath se "Run workflow": 0, yaani hamesha chalega.
+          MIN_GAP_HOURS: ${{ github.event_name == 'schedule' && '11' || inputs.min_gap_hours || '0' }}
