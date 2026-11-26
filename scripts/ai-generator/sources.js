@@ -95,6 +95,10 @@ function siteFeeds(topic) {
   return [
     { site: "tinybuddha.com", name: "Tiny Buddha", url: `https://tinybuddha.com/tag/${encodeURIComponent(topic.tinyBuddhaTag)}/feed/` },
     { site: "tinybuddha.com", name: "Tiny Buddha", url: `https://tinybuddha.com/tag/${encodeURIComponent(topic.tinyBuddhaTag)}/feed/?paged=2` },
+    // Din me 4 posts = articles jaldi use ho jaate hain, isliye page 3-4 bhi. Kisi tag ke itne page na hon
+    // (jaise overthinking) to wo feed khaali/404 aati hai aur upar wale try/catch me chupchaap skip ho jaati hai.
+    { site: "tinybuddha.com", name: "Tiny Buddha", url: `https://tinybuddha.com/tag/${encodeURIComponent(topic.tinyBuddhaTag)}/feed/?paged=3` },
+    { site: "tinybuddha.com", name: "Tiny Buddha", url: `https://tinybuddha.com/tag/${encodeURIComponent(topic.tinyBuddhaTag)}/feed/?paged=4` },
     { site: "jamesclear.com", name: "James Clear", url: `https://jamesclear.com/?s=${encodeURIComponent(topic.jamesClearQuery)}&feed=rss2` },
   ];
 }

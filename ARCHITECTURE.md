@@ -1,7 +1,7 @@
 # MyBlog — Architecture & Reference Guide
 
 > Future reference ke liye banaya gaya. Project ko dobara samajhna ho to yahin se shuru karo.
-> Last updated: 2026-11-24 (**AI se blog posts**: admin review portal aur free AI generator jo har 12 ghante draft banata hai. Section 15, 16 aur 17 dekho)
+> Last updated: 2026-11-24 (**AI se blog posts**: admin review portal aur free AI generator jo har 6 ghante (din me 4) draft banata hai. Section 15, 16 aur 17 dekho)
 
 ## 0. Padhne ka order (naye ho to yahin se shuru karo)
 
@@ -27,7 +27,7 @@
 10. ⭐ **13. Logging & Health check** (server par kuch toote to yahin se shuru karo)
 11. ⏭️ **14. Site ka text English me** (naya text likhte waqt dhyan rakhna)
 12. ⭐ **15. AI Posts: admin review portal** (AI ki likhi post pehle admin ke paas aati hai, phir approve/reject)
-13. ⭐ **16. AI post generator** (har 12 ghante apne aap draft kaise banta hai, free me)
+13. ⭐ **16. AI post generator** (har 6 ghante apne aap draft kaise banta hai, free me)
    - ✅ 16.1 Seedhi baat → 16.3 Ek run ka poora safar → 16.10 Kaunsi setting kahan hai
    - ⭐ 16.12 Kuch toote to kya karein
    - ⏭️ baaki details (topics, sources, checks, GitHub Actions) jab code badalna ho tab
@@ -64,7 +64,7 @@ Ye **CRUD** (Create, Read, Update, Delete) + **authentication/authorization** ka
 | **cookie-session** | login session | login ki yaad browser ki signed cookie me rehti hai, alag session table nahi |
 | nodemon | dev tool | `npm start` pe file change hote hi server restart |
 | **@google/genai** | AI (Google Gemini, free tier) | AI se blog post ka draft likhwana (section 16) |
-| **GitHub Actions** | scheduler (free, GitHub ka) | har 12 ghante AI generator script chalana (section 16.9) |
+| **GitHub Actions** | scheduler (free, GitHub ka) | har 2 ghante AI generator script chalana, draft har ~6 ghante (section 16.9) |
 
 ## 3. Folder structure
 
@@ -76,7 +76,7 @@ myBlog/
 │   ├── 001-ai-drafts.sql   ← ai_drafts table (AI drafts ki review queue)
 │   └── 002-ai-assisted.sql ← posts.ai_assisted column ("AI-assisted" label)
 ├── .github/workflows/
-│   └── ai-post.yml         ← GitHub Actions: har 12 ghante AI generator chalata hai [NAYA, section 16.9]
+│   └── ai-post.yml         ← GitHub Actions: AI generator (draft har ~6 ghante) [NAYA, section 16.9]
 ├── package.json            ← Dependencies + scripts ("npm start", "npm run set-admin-password", "npm run generate-post")
 ├── .env                    ← DB credentials + SESSION_SECRET (gitignored, kabhi commit mat karna)
 ├── logs/app.log            ← local par server ke logs (gitignored, apne aap banta hai, section 13) [NAYA]
@@ -811,11 +811,11 @@ Jawab ke codes:
 | `public/styles/admin.css` | portal ki styling (dark mode bhi) |
 | `migrations/001-ai-drafts.sql` | table banana (end me undo ka `DROP` bhi likha hai) |
 
-## 16. AI post generator: har 12 ghante apne aap draft (2026-11-24)
+## 16. AI post generator: har 6 ghante apne aap draft (2026-11-24)
 
 ### 16.1 Seedhi baat
 
-Ek chhota **robot (script)** hai jo har 2 ghante apne aap uthta hai, aur agar pichla draft 11 ghante se purana hai (yaani din me ~2 baar) to:
+Ek chhota **robot (script)** hai jo har 2 ghante apne aap uthta hai, aur agar pichla draft 5 ghante se purana hai (yaani har ~6 ghante, din me 4 baar) to:
 1. Tumhari site se poochta hai: "Queue me jagah hai?"
 2. Ek topic chunta hai (jaise *overthinking*).
 3. Internet se **asli logon ke likhe articles** padhta hai (jaise Tiny Buddha pe logon ki apni kahaniyan).
@@ -931,11 +931,13 @@ cron: "17 */2 * * *"
 Is line ka matlab: **har 2 ghante, minute 17 pe (UTC)**: 00:17, 02:17, 04:17 ... India me 5:47 AM, 7:47 AM, 9:47 AM ...
 (Cron ke 5 hisse: minute, ghanta, din, mahina, hafte ka din. `*/2` = "har doosra ghanta".)
 
-**Har 2 ghante kyun, jab post 12 ghante me ek chahiye?** GitHub scheduled runs ki guarantee nahi deta. Pehle `17 0,12` (din me sirf 2 baar) tha, aur 2026-11-24 shaam aur 2026-11-25 subah, **dono runs chale hi nahi**. Ek run chhoota = 12 ghante tak kuch nahi. Ab robot baar-baar uthta hai, aur script pehle site se poochti hai "aakhri draft kab bana tha?":
-- 11 ghante se kam hua → *"Skipping this run"* likh ke ruk jaati hai. **Gemini ko call hi nahi hota**, to free limit kharch nahi hoti.
-- 11 ghante ya zyada → draft banati hai.
+**Har 2 ghante kyun, jab post 6 ghante me ek chahiye?** GitHub scheduled runs ki guarantee nahi deta. Pehle `17 0,12` (din me sirf 2 baar) tha, aur 2026-11-24 shaam aur 2026-11-25 subah, **dono runs chale hi nahi**. Ek run chhoota = 12 ghante tak kuch nahi. Ab robot baar-baar uthta hai, aur script pehle site se poochti hai "aakhri draft kab bana tha?":
+- 5 ghante se kam hua → *"Skipping this run"* likh ke ruk jaati hai. **Gemini ko call hi nahi hota**, to free limit kharch nahi hoti.
+- 5 ghante ya zyada → draft banati hai.
 
-Example: subah 5:47 pe draft bana. 7:47, 9:47 ... 3:47 PM wale runs skip. 5:47 PM wala chalega. Agar 5:47 PM wala GitHub ne chhod diya ya Gemini busy tha, to 7:47 PM pe phir try. Ye 11 ghante `MIN_GAP_HOURS` env se aata hai (workflow file me). **Run workflow** (haath se) me ye 0 hota hai, to wo hamesha draft banata hai.
+(2026-11-26 tak ye 11 ghante tha, yaani din me 2 post. Ab 5, yaani din me 4.)
+
+Example: subah 5:47 pe draft bana. 7:47 aur 9:47 wale runs skip (2 aur 4 ghante hi hue). 11:47 wala chalega (6 ghante). Agar wo Gemini busy hone se fail hua, to 1:47 PM pe phir try. Ye 5 ghante `MIN_GAP_HOURS` env se aata hai (workflow file me). **Run workflow** (haath se) me ye 0 hota hai, to wo hamesha draft banata hai.
 
 **Minute 17 kyun, 0 kyun nahi?** Ghante ki shuruaat (`:00`) pe duniya bhar ke scheduled jobs ek saath chalte hain, GitHub pe sabse zyada bheed hoti hai, aur runs late hote hain ya **chhoot jaate hain**. Pehle `0 0,12` tha, aur 2026-11-24 ka 5:30 PM wala run chala hi nahi. Isliye ek "ajeeb" minute rakha (aur upar wala har-2-ghante wala jugaad bhi).
 
@@ -943,9 +945,11 @@ Har run me: code checkout → Node 22 → `npm ci` → `npm run generate-post` (
 
 **Haath se chalana:** GitHub repo → **Actions** → **AI post generator** → **Run workflow**.
 
-**Backup alarm: cron-job.org (free).** 2026-11-25 tak GitHub ne is repo pe **ek bhi** scheduled run nahi chalaya (koi error bhi nahi, bas chala hi nahi). Isliye ek bahar ki free website, cron-job.org, har 2 ghante GitHub ko API se bolti hai: *"ye workflow chalao, `min_gap_hours=11` ke saath"*. Ye bilkul waisa hi hai jaise tum Run workflow dabate ho, bas robot daba raha hai.
+**Backup alarm: cron-job.org (free).** 2026-11-25 tak GitHub ne is repo pe **ek bhi** scheduled run nahi chalaya (koi error bhi nahi, bas chala hi nahi). Isliye ek bahar ki free website, cron-job.org, har 2 ghante GitHub ko API se bolti hai: *"ye workflow chalao, `min_gap_hours=5` ke saath"*. Ye bilkul waisa hi hai jaise tum Run workflow dabate ho, bas robot daba raha hai.
 - Iske liye GitHub ka ek **token (fine-grained PAT)** banta hai, jisko sirf is repo ka *Actions: Read and write* allowed hai. Ye token sirf cron-job.org me rakha hai, code me nahi.
 - GitHub ka schedule aur cron-job.org dono chal gaye to bhi do draft nahi bante: `concurrency` ki wajah se doosra run pehle ke khatam hone ka wait karta hai, phir dekhta hai ki naya draft hai, aur skip kar deta hai.
+- **Din me kitni post, ye kahan badalta hai?** cron-job.org ke Request body me `min_gap_hours` (abhi `"5"`), aur workflow file me schedule wala `'5'`. Example: din me 3 post chahiye → `7`.
+- **Queue ka dhyan:** 10 drafts pending ho gaye (`AI_DRAFTS_MAX_PENDING`) to naye draft rukk jaate hain (bina AI call). Din me 4 drafts = review na kiya to ~2.5 din me queue full.
 - Token ki expiry date hoti hai. Expire hone pe cron-job.org me "401" error dikhega. Tab naya token banake wahan daal dena.
 
 **Dhyan rakhna:**
@@ -990,7 +994,7 @@ GitHub → Actions → laal (failed) run kholo → "Generate draft" step ka log 
 | `Context request failed (503)` | Render pe `AI_DRAFTS_API_TOKEN` set nahi | Render env me daalo, redeploy |
 | `Site unreachable` | `SITE_URL` galat, ya site down | secret check karo, `/health` kholo |
 | `All Gemini models failed … 429` | free limit khatam / Google ne free tier badla | thoda wait. Baar-baar ho to AI Studio me limits dekho |
-| `All Gemini models failed … 503` | Gemini 15 minute tak lagaataar busy raha (script ne 5 rounds try kiye) | kuch nahi, agla run 12 ghante baad apne aap. Jaldi chahiye to 1-2 ghante baad **Run workflow** |
+| `All Gemini models failed … 503` | Gemini 15 minute tak lagaataar busy raha (script ne 5 rounds try kiye) | kuch nahi, agla run 2 ghante baad apne aap. Jaldi chahiye to 1-2 ghante baad **Run workflow** |
 | `Gemini rejected the request (400/401/403)` | Gemini key galat / delete ho chuki | AI Studio me nayi key banao, GitHub Secret `GEMINI_API_KEY` badlo |
 | `Only 2 usable articles` | feeds down ya saare articles pehle use ho chuke | thode din me naye articles aa jayenge. Bahut baar ho to `topics.js` / `sources.js` me naya source jodo |
 | `Draft failed checks twice` | AI ne copy kiya / nakli quote | kuch nahi, agla run naye sirse try karega |
