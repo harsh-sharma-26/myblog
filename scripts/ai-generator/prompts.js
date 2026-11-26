@@ -8,21 +8,35 @@
 // Admin ke reject reasons yahan prompt me jaate hain, taaki agla draft unse seekhe.
 // =====================================================================
 
-const SYSTEM_INSTRUCTION = `You write warm, practical self-help articles for a personal blog.
+// [READABILITY] Length aur structure research pe based (ARCHITECTURE.md section 16): log page ke ~20% words hi
+// padhte hain aur skim karte hain, isliye post chhoti (500-700 words, ~3 min) aur skim karne layak banti hai.
+const SYSTEM_INSTRUCTION = `You write warm, practical self-help articles for a personal blog. Most readers are students
+and young adults reading on a phone, often in their second language, so every sentence must earn its place.
 You are given several real articles written by different people about one topic. Your job is to read their
-experiences and write ONE new, original article that brings their lessons together.
+experiences and write ONE new, original, short article that brings their best lessons together.
 
 Hard rules:
 - Write everything in your own words. Never copy or lightly reword sentences from the sources.
 - Use ideas and experiences from at least 3 different sources, not just one.
-- Include 2 to 4 short direct quotes (each 25 words or fewer). A quote must be copied exactly, word for word,
+- Include 1 or 2 short direct quotes (each 25 words or fewer). A quote must be copied exactly, word for word,
   from the source text you were given, inside straight double quotes "like this", followed by who said it,
   for example: "quote text" (Jane Doe, Tiny Buddha). Never invent quotes, names, stories, studies or numbers.
 - Do not give medical, psychiatric or medication advice and do not diagnose. If the topic touches anxiety,
   depression or trauma, gently suggest talking to a qualified professional.
-- Plain text only. No Markdown: no #, no *, no bullet symbols. Separate paragraphs with one blank line.
-  You may use 2 to 4 short subheadings, each on its own line.
-- Length: 900 to 1300 words. Friendly, honest, concrete, with practical takeaways. No clickbait.`;
+- Length: 600 to 750 words in the body. Count carefully: under 500 words will be rejected. No filler: every
+  sentence must be useful.
+
+How to make people read to the end:
+- Opening (2 or 3 sentences): name a specific, relatable moment or feeling the reader knows, then say in one
+  sentence what they will get from this post. No "In today's world", no dictionary definitions, no long intro.
+- Paragraphs of 1 to 3 short sentences. Plain, simple English. Speak to the reader as "you".
+- 2 or 3 subheadings that tell the reader the point of the section (not vague labels like "Introduction").
+  Write each subheading on its own line starting with "## ".
+- Each section gives one clear idea with one concrete example or story from the sources.
+- End with a subheading "## Try this today" followed by 3 or 4 small, specific actions, each on its own line
+  starting with "- ". Then one short, warm closing sentence.
+- No other formatting: no bold, no italics, no numbered lists, no emojis. Separate paragraphs with one blank line.
+- Friendly, honest and concrete. No clickbait, no hype, no empty motivation.`;
 
 function formatSources(articles) {
   return articles
@@ -46,9 +60,9 @@ function buildPrompt({ topic, articles, avoidTitles, rejectReasons, extraNote })
 
   parts.push(
     `Return JSON with:
-- title: a clear, specific title (at most 90 characters)
-- summary: 1 or 2 sentences (at most 200 characters)
-- body: the full article as plain text
+- title: a clear, specific title that promises a concrete benefit (at most 70 characters, no clickbait)
+- summary: 1 or 2 sentences that tell the reader what they will learn (at most 160 characters)
+- body: the full article, using only "## " subheadings, "- " action lines and blank lines between paragraphs
 - usedSources: the numbers of the sources you actually drew from, e.g. [1, 3, 4]`,
   );
   return parts.join("\n");

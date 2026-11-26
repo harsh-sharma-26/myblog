@@ -1,0 +1,18 @@
+<%# [READABILITY] Post ka body: paragraphs, chhoti headings, lists. Blocks utils/post-format.js (parseBody) se aate hain.
+    Har text escape karke likha jaata hai (HTML/script body se page me nahi ghus sakta).
+    Link sirf http(s) wale bante hain, rel="nofollow ugc" ke saath (users ki posts ke links ko Google "vote" na maane). %>
+<div id="body" class="post-body">
+  <% for (const block of parseBody(body)) { %>
+    <% if (block.type === 'h') { %>
+  <h2><%= block.text %></h2>
+    <% } else if (block.type === 'ul') { %>
+  <ul>
+      <% for (const item of block.items) { %>
+    <li><% for (const part of item) { %><% if (part.link) { %><a href="<%= part.link %>" target="_blank" rel="noopener noreferrer nofollow ugc"><%= part.link %></a><% } else { %><%= part.text %><% } %><% } %></li>
+      <% } %>
+  </ul>
+    <% } else { %>
+  <p><% for (const part of block.parts) { %><% if (part.link) { %><a href="<%= part.link %>" target="_blank" rel="noopener noreferrer nofollow ugc"><%= part.link %></a><% } else { %><%= part.text %><% } %><% } %></p>
+    <% } %>
+  <% } %>
+</div>

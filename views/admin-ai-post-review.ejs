@@ -41,9 +41,10 @@
           <section id="post-meta">
             <address><%= draft.status === 'pending' ? currentUser.name + ' (you, after approval)' : (draft.reviewer_name || '') %></address>
             <p class="ai-assisted-label">AI-assisted · Reviewed by <%= draft.status === 'pending' ? currentUser.name : (draft.reviewer_name || '') %></p>
+            <p class="reading-time"><%= readingMinutes(draft.body) %> min read</p>
           </section>
           <hr />
-          <p id="body"><%= draft.body %></p>
+          <%- include('includes/post-body', { body: draft.body }) %>
           <% if (draft.sources) { %>
           <div class="preview-sources">
             <p><strong>Sources</strong> <span class="preview-hint">(added to the end of the post on approval)</span></p>

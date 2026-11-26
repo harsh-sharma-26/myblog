@@ -10,7 +10,7 @@
 //   2) Topic chuno (sabse kam likha gaya)                                              (topics.js)
 //   3) RSS se 3-5 asli logon ke articles, jo pehle use nahi hue                         (sources.js)
 //   4) Gemini (free tier) se apne shabdon me post likhwao, JSON format me               (prompts.js)
-//   5) Code se jaancho: format, copy-paste, nakli quotes. Fail -> ek baar dobara          (checks.js)
+//   5) Code se jaancho: format, copy-paste, nakli quotes. Fail -> 2 baar aur koshish      (checks.js)
 //   6) Draft bhejo -> admin portal me "pending"                                         (POST /api/ai-drafts)
 //
 // Env (local: .env, GitHub: repo Secrets):
@@ -195,17 +195,18 @@ async function main() {
   let result;
   let model;
   let extraNote = "";
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  // 3 koshish: chhota model (flash-lite) aksar pehli baar length/format me chook jaata hai, problems batane pe sudhar leta hai
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
     const prompt = buildPrompt({ topic, articles, avoidTitles, rejectReasons, extraNote });
     const generated = await generateWithGemini(ai, prompt);
     model = generated.model;
     result = checkDraft(generated.draft, articles);
-    log(`Attempt ${attempt}: model=${model} words=${result.words} ok=${result.ok}${result.ok ? "" : ` problems=[${result.problems.join("; ")}]`}`);
+    log(`Attempt ${attempt}: model=${model} words=${result.words} ok=${result.ok}${result.ok ? "" : ` problems=[${result.problems.join("; ")}]`}${result.warnings.length ? ` warnings=[${result.warnings.join("; ")}]` : ""}`);
     if (result.ok) break;
-    extraNote = `Your previous attempt had these problems, fix them: ${result.problems.join("; ")}. Remember: quotes must be copied exactly from the sources, and everything outside quotes must be in your own words.`;
+    extraNote = `Your previous attempt (${result.words} words) had these problems, fix them: ${result.problems.join("; ")}. The body must be 600 to 750 words with "## " subheadings and a "## Try this today" list of "- " actions. Remember: quotes must be copied exactly from the sources, and everything outside quotes must be in your own words.`;
   }
   if (!result.ok) {
-    throw new Error(`Draft failed checks twice, not sending it: ${result.problems.join("; ")}`);
+    throw new Error(`Draft failed checks 3 times, not sending it: ${result.problems.join("; ")}`);
   }
 
   const payload = { ...result.draft, topic: topic.key };

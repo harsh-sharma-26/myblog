@@ -22,10 +22,12 @@
         <% if (post.ai_assisted) { %>
         <p class="ai-assisted-label">AI-assisted · Reviewed by <%= post.author_name %></p>
         <% } %>
+        <%# [READABILITY] Pehle hi pata chale post kitni chhoti hai, to padhna shuru karne ka mann karta hai %>
+        <p class="reading-time"><%= readingMinutes(post.body) %> min read</p>
       </section>
       <hr />
       <section>
-        <p id="body"><%= post.body %></p>
+        <%- include('includes/post-body', { body: post.body }) %>
       </section>
       <%- include('includes/like-widget', { post: post }) %>
       <%# [AUTH] Detail page par bhi Edit/Delete, sirf permission walon ko %>

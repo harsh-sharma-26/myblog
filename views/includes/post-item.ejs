@@ -3,6 +3,8 @@
   <p class="post-item-author">
     <span class="author-avatar" aria-hidden="true"><%= (post.author_name || "?").charAt(0).toUpperCase() %></span>
     <%= post.author_name %>
+    <%# [READABILITY] Card pe bhi "X min read" %>
+    <span class="post-item-read-time">· <%= readingMinutes(post.body) %> min read</span>
   </p>
   <h2><%= post.title %></h2>
   <p class="post-item-summary"><%= post.summary %></p>

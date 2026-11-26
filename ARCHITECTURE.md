@@ -98,7 +98,8 @@ myBlog/
 │   ├── password.js         ← bcrypt hash / verify
 │   ├── async-handler.js    ← async route ke error ko 500 page pe bhejta hai (pehle blog.js me tha)
 │   ├── logger.js           ← logger: console me hamesha, file me sirf local par (section 13) [NAYA]
-│   └── ai-drafts.js        ← AI draft ki validation + approve pe "Sources" list jodna [NAYA, section 15]
+│   ├── ai-drafts.js        ← AI draft ki validation + approve pe "Sources" list jodna [NAYA, section 15]
+│   └── post-format.js      ← post body ko paragraph/heading/list me baantna + "X min read" [NAYA, section 16.14]
 ├── scripts/
 │   ├── set-admin-password.js ← admin ka password terminal se set karne ki script [NAYA]
 │   └── ai-generator/         ← AI post generator (section 16)                   [NAYA FOLDER]
@@ -118,7 +119,8 @@ myBlog/
 │   └── includes/           ← reusable chhote tukde
 │       ├── head.ejs        ← <head> (meta, fonts, base.css, title, csrf meta tag)
 │       ├── header.ejs      ← top navbar (login ki halat ke hisaab se badalta hai)
-│       ├── post-item.ejs   ← list me ek post ka card
+│       ├── post-item.ejs   ← list me ek post ka card (poora card clickable)
+│       ├── post-body.ejs   ← post ka body: paragraphs, headings, lists [NAYA, section 16.14]
 │       ├── like-widget.ejs ← like button ka khali div (React isme mount hota hai) [NAYA]
 │       ├── csrf-field.ejs  ← har form ka chhupa hua security token field         [NAYA]
 │       └── form-error.ejs  ← form ke upar laal error box                          [NAYA]
@@ -880,10 +882,11 @@ Naya topic jodna ho to `TOPICS` list me ek line jod do (Tiny Buddha ka tag naam 
 
 **AI ko diye gaye rules (short me):**
 - sab kuch **apne shabdon me**, kam se kam 3 sources ke ideas mila ke
-- 2-4 **chhote quotes** (25 shabd tak), hubahu source se, naam ke saath. Example: `"Perfection as a destination is what causes procrastination." (Chris Wilson, Tiny Buddha)`
+- 1-2 **chhote quotes** (25 shabd tak), hubahu source se, naam ke saath. Example: `"Perfection as a destination is what causes procrastination." (Chris Wilson, Tiny Buddha)`
 - koi nakli quote, naam, kahani ya number **nahi**
 - medical/dawai ki salah nahi. Anxiety/depression jaisa topic ho to professional se baat karne ki salah
-- plain text (site Markdown nahi dikhati), 900-1300 shabd
+- **600-750 shabd maangte hain** (asli post ~350-700 aati hai, yaani ~2-3 minute). Pehle 900-1300 tha, jo bahut lamba tha (section 16.14)
+- shuru ki 2-3 line me reader ki jaani-pehchaani feeling + "is post se kya milega"; chhote paragraphs; `## ` wali 2-3 headings; aakhir me `## Try this today` ke neeche 3-4 `- ` steps
 - pichle titles jaisa title nahi, aur admin ke reject reasons dhyan me rakhna
 
 **Jawab ka format fix hai (JSON):** `{ title, summary, body, usedSources: [1, 3, 4] }`. Gemini ko schema diya jata hai, to format galat nahi aata.
@@ -910,9 +913,15 @@ AI pe aankh band karke bharosa nahi. Draft bhejne se pehle ye 3 check:
 |---|---|---|
 | **Copy-paste** | quotes hata ke, post ka har **12 shabdon** ka tukda sources se milate hain | source me likha tha *"I spent years believing that if I just worked harder I would finally feel enough"* aur AI ne bina quotes ke wahi 12 shabd likh diye → **fail** |
 | **Nakli quote** | har quote ke shabd lagaatar kisi source me hone chahiye | AI ne `"Kindness is the best medicine" (Jane, Tiny Buddha)` likha, par kisi source me ye line hai hi nahi → **fail** |
-| **Format** | title 10-120 chars, summary 20-250, body 600-2200 shabd, quote 35 shabd se lamba nahi | 300 shabd ki post → **fail** |
+| **Format** | title 10-120 chars, summary 20-250, body 350-850 shabd, "Try this today" me kam se kam 3 steps, quote 35 shabd se lamba nahi | 300 shabd ki post, ya aakhir me steps ki list hi nahi → **fail** |
 
-Fail hua to AI ko galti batakar **ek baar dobara** likhwate hain. Doosri baar bhi fail → draft **nahi** bheja jata, run laal (failed) dikhta hai. Markdown ke `#`, `**` jaise nishaan apne aap saaf ho jaate hain.
+Fail hua to AI ko galti batakar **2 baar aur** likhwate hain. Teesri baar bhi fail → draft **nahi** bheja jata, run laal (failed) dikhta hai.
+
+**Chhoti galtiyan code khud theek karta hai (AI ko dobara nahi likhwata):**
+- `**bold**` hata deta hai. `###` ko `## ` aur `*`, `•`, `1.` wale bullets ko `- ` bana deta hai.
+- AI ne paragraphs ke beech khaali line nahi chhodi → har line alag paragraph.
+- 70 shabd se lamba paragraph → 2-3 sentence ke tukdon me tod deta hai (phone pe lamba paragraph "deewar" jaisa lagta hai).
+- 2 se kam headings → sirf warning log me, draft fail nahi hota (admin Edit me jod sakta hai).
 
 ### 16.8 "AI-assisted" label (migration `002-ai-assisted.sql`)
 
@@ -1007,6 +1016,42 @@ GitHub → Actions → laal (failed) run kholo → "Generate draft" step ka log 
 - Research sirf RSS se hai. Isliye utna gehra nahi jitna "AI khud web search kare" me hota. Naye source jodne ho to `sources.js` me feed URL jodo (pehle us site ka `robots.txt` check karna).
 - Reddit/Quora jaan-boojh ke nahi: unki terms automated access pe rok lagati hain.
 - **Gemini key rotate karna:** key kabhi chat/kahin aur likhi gayi ho to AI Studio me nayi key banao, `.env` + GitHub Secret me badlo, purani delete karo.
+
+### 16.14 Post chhoti aur padhne layak (2026-11-26)
+
+**Problem:** AI ki posts 900-1300 shabd ki thi (~5-6 minute). Itna lamba text dekh ke log page chhod dete hain.
+
+**Research kya kehti hai (short me):**
+- Aam adult English non-fiction ~238 shabd/minute padhta hai (Brysbaert 2019). English doosri bhasha ho to aur dheere.
+- Log page ke sirf ~20% shabd padhte hain, baaki skim karte hain (Nielsen Norman Group).
+- News pages pe log average ~30 second hi sach me active rehte hain (Chartbeat).
+
+**Kya badla:**
+
+| Kya | Pehle | Ab |
+|---|---|---|
+| Length | 900-1300 shabd | 600-750 maangte hain, asli ~350-700 (2-3 min) |
+| Shuruaat | kuch bhi | 2-3 line: jaani-pehchaani feeling + "is post se kya milega" |
+| Headings | plain line (dikhti hi nahi thi) | `## Heading` → site pe asli chhoti heading |
+| Aakhir | kuch bhi | `## Try this today` + 3-4 chhote steps (list) |
+| Quotes | 2-4 | 1-2 |
+| "X min read" | nahi | card aur post page dono pe |
+
+**Site body kaise dikhati hai (`utils/post-format.js` + `views/includes/post-body.ejs`):** body database me plain text hi rehta hai. Dikhate waqt usko hisson me baanta jata hai:
+
+```
+## Ek heading          → chhoti heading
+- ek step              → list ka point
+(khaali line)          → naya paragraph
+https://...            → clickable link (rel="nofollow ugc")
+Sources:               → heading (AI posts ke end me)
+```
+
+Example: tumne post me likha `- Subah phone mat dekho` to wo bullet point ban ke dikhega. Normal users ki purani posts me ye nishaan nahi hain, to wo pehle jaise paragraphs hi dikhti hain. Sab text escape hota hai, to koi `<script>` likhe to wo bas text dikhega, chalega nahi.
+
+**"X min read":** shabd ÷ 200 (238 nahi, kyunki humare kai readers ki English doosri bhasha hai). "Sources" wala hissa nahi gina jata.
+
+**Test (2026-11-26, DRY_RUN):** bade models busy the, `flash-lite` ne likha. Pehle wo baar-baar ~300 shabd likh raha tha aur lambe paragraphs de raha tha. Isliye prompt me 600-750 maange, aur chhoti format galtiyan code khud theek karta hai. Uske baad pehli koshish me 372 shabd (~2 min) ka saaf draft bana, "Try this today" list ke saath.
 
 ## 17. Local MySQL reset (2026-11-24)
 

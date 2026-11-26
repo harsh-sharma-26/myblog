@@ -47,6 +47,10 @@ if (process.env.TRUST_PROXY === "1") {
 
 // Activate EJS view engine
 app.set("view engine", "ejs");
+// [READABILITY] Har view me milte hain: parseBody (post ka body paragraphs/headings/lists me) aur readingMinutes ("3 min read")
+const { parseBody, readingMinutes } = require("./utils/post-format");
+app.locals.parseBody = parseBody;
+app.locals.readingMinutes = readingMinutes;
 app.set("views", path.join(__dirname, "views"));
 
 //middlewares: (ORDER matter karta hai, upar se neeche ek ke baad ek chalte hain)

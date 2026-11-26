@@ -255,8 +255,48 @@
   margin: 0 0 2rem;
   font-size: 1.08rem;
   line-height: 1.85;
-  white-space: pre-wrap; /* This ensures that line breaks and whitespace are kept */
   overflow-wrap: anywhere;
+}
+
+/* [READABILITY] Body ab paragraphs / headings / lists me aata hai (views/includes/post-body.ejs).
+   Paragraphs ke beech saaf gap aur chhoti headings = skim karne wala bhi seedha kaam ki baat tak pahunch jaata hai. */
+#body p {
+  margin: 0 0 1.1em;
+  white-space: pre-line; /* paragraph ke andar ki single line-break bhi dikhe (purani posts ke liye) */
+}
+
+#body h2 {
+  margin: 1.8em 0 0.6em;
+  font-size: 1.3rem;
+  line-height: 1.35;
+}
+
+#body ul {
+  margin: 0 0 1.2em;
+  padding-left: 1.3em;
+}
+
+#body li {
+  margin-bottom: 0.45em;
+}
+
+#body li::marker {
+  color: var(--accent);
+}
+
+#body a {
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+/* "3 min read" (detail page + card) */
+.reading-time {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+.post-item-read-time {
+  font-weight: 400;
 }
 
 /* Detail page me like button left me, card/list me content ke saath align */
